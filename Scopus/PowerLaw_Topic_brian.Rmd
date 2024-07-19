@@ -1,0 +1,1262 @@
+---
+title: "Power Law: Social Resilience Topic 0" 
+subtitle: "Storymodelers Lab"
+author: Brian Llinás^[Computer Science Department, Old Dominion University, Norfolk VA, USA]
+fontsize: 13pt
+header-includes:
+  - \usepackage{amssymb}
+  - \usepackage{latexsym}
+  - \usepackage{amsmath,amsthm} 
+  - \usepackage{bm} 
+date: '`r format(Sys.time(), "%d/%m/%y")`' # ver https://bookdown.org/yihui/rmarkdown-cookbook/update-date.html
+lang: "en-US"
+output: 
+    html_document:
+          toc: true      # table of content true 
+          toc_depth: 4   # upto three depths of headings (specified by #, ## and ###) 
+          toc_float: true #toc a la izquierda #para word no disponible
+          collapsed: false #para word no disponible
+          number_section: true #para word no disponible
+          theme: readable #para word no disponible
+          number_sections: true   # if you want number sections at each table header
+          code_folding: show #para word no disponible
+          highlight: pygments 
+csl: science.csl
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$\alphaet(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(fig.align = "center") #solo para html
+knitr::opts_chunk$set(fig.width = 8)
+knitr::opts_chunk$set(dpi = 1200)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+# Packages
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+library(sads)
+library(latexpdf)
+library(igraph)
+library(poweRlaw)
+library(readr)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Abstract
+
+A statistical analysis of the blaming data collected in Colombia is
+presented. For the analyses, the following procedures were carried out:
+(1) Data preprocessing, (2) Data cleaning, (3) Zipf analysis. The R
+statistical program was used.
+
+**Keywords**: Blaming, Geopolitics, Colombia, Zipf's law.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Introduction
+
+For the development of the analysis, a database was used, which was
+constructed from the blaming captured in different news items in the
+countries of Colombia regarding the perception of the news about the
+events that occurred due to the migratory effects in Colombia. The
+databases contain variables such as frustration:
+
+-   Geopolitics: blaming towards geopolitics.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Methodology
+
+### Data Lecture
+
+We note that our initial database has as columns factors associated with
+each blaming and observations of the analyzed periods from January 2015
+to December 2020, analyzed month by month.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Data Clean
+
+For the data processing, we will rename the column `...1`, which is
+associated with the study period, so that we will call it `date`. For
+the columns related to the factors, we must transpose them into a single
+column called `factor`. Finally, the values in these columns will become
+the variable `freq`, which is the amount of the factor perceived during
+the analysis period.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Zipf Analysis
+
+To perform the zip analysis, we must group by factors and add their
+total frequencies. We order from highest to lowest to determine the
+element with the highest frequency and, from there, perform the zip
+analysis. The idea is to compare the observed frequency with the
+theoretical frequency. To calculate the theoretical frequency, we must
+take as base the higher frequency, which would be the frequency of the
+factor that repeats more, and divide it between the rank of the element
+to the frequency to calculate.
+
+$$Zip_{frequency}=\frac{X}{i}$$
+
+where:
+
+-   $X:$ the frequency of the factor that repeats more
+
+-   $i:$ the rank of the element to the frequency to calculate
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Suggested steps
+
+Authors of refered bibliographies suggested the following steps to
+analyse dataset.
+
+1.  Initial estimation of $x_{min}$ and $\alpha$, using the methods
+    described in Section *Fitting power laws to empirical data*.
+
+2.  Make a CDF (cumulative distribution function) with that.
+
+3.  Kolgomorov-Smirnov test to determine minimum $D$.
+
+4.  Repeat steps 1-3 to scanning whole $(x_{min}, x_{max})$ range to
+    identify $x_{min}$ for which $D$ is minimal.
+
+5.  Investigate goodness of fit with bootstrapping, using the method
+    described in Section *Testing the power-law hypothesis*.
+
+-   Assign $D_{min}$ to $x_{min}$ which is $D^{real}$.
+
+-   Generate a data sequence of points with bootstrapping and
+    determining $D^{syntetic}$.
+
+-   Determine $P$ value of null hypothesis that claims the distribution
+    is power-law.
+
+-   If resulting P-value is greater than 0.05 ($p\geq 0.05$) than null
+    hypothesis is true (that's say, the power law is a plausible
+    hypothesis for the data), otherwise it is rejected.
+
+6.  Fitting real distribution
+
+-   Choose $k_{cut}$ and $k_{sat}$ to optimal cut.
+
+-   Estimate $\alpha$ (scaling parameter).
+
+-   Calculate $D$ with Kolgomorov-Smirnov test.
+
+-   Repeat steps 1-3 to determine real $k_{cut}$ and $k_{sat}$ for which
+    $D$ is minimal.
+
+7.  Compare the power law with alternative hypotheses via a likelihood
+    ratio test, as described in Section *Alternative distributions*.
+
+-   For each alternative, if the calculated likelihood ratio is
+    significantly different from zero, then its sign indicates whether
+    the alternative is favored over the power-law model or not.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Our data
+
+### Complete data
+
+```{r}
+# Data Lecture
+# library(readr)
+data <- read.csv("power_law.csv")
+dim(data)
+
+# data[c(1:5,(NROW(data)-5):NROW(data)),] %>%
+#   kable(align = "lcc")  %>% #solo para html
+#   kable_styling() %>%
+#   kable_classic_2(full_width = F)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Clean data
+
+```{r}
+# Data clean
+data_clean <- data %>% 
+  filter(topic == 0,
+         Cited.by > 0) %>% 
+  select(Title, Cited.by)
+dim(data_clean)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Zipf analysis
+
+### Table
+
+```{r}
+# Zip Analysis
+
+# Set alpha value
+alpha <- 1
+
+# Perform the Zipf analysis
+word_count <- data_clean %>%
+  arrange(desc(Cited.by)) %>%
+  mutate(factor = Title,
+         count = Cited.by,
+         prop = round(count / sum(count), 2),
+         relation = round(first(count) / count, 2),
+         rank = row_number(),
+         zipfs = ifelse(rank == 1, count, 
+                        round(first(count) / rank^alpha, 2)),
+         error = round(abs(zipfs - count) / zipfs, 2)
+  ) %>%
+  relocate(rank, .before = factor)
+
+# Display the results in a table
+ word_count %>%
+  kable(align = "lcc") %>% 
+  kable_styling(latex_options = "HOLD_position") %>%
+  kable_classic_2(full_width = FALSE) %>%
+  row_spec(which(word_count$count == 0), bold = TRUE, 
+           color = "white", background = "red") -> word_count
+head(word_count)
+dim(word_count)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Plot
+
+```{r}
+ggplot(word_count, aes(x = rank, y = count)) + 
+  geom_point(aes(color = "observed")) +
+  geom_line(aes(color = "observed")) +
+  theme_bw() + 
+  geom_point(aes(y = zipfs, color = "theoretical")) +
+  geom_line(aes(y = zipfs, color = "theoretical")) +
+  labs(x = "Rank", y = "Count", title = "Zipf's law visualization for Topic 1") +
+  scale_colour_manual(name = "Word count", values=c("theoretical" = "red", "observed" = "black")) +
+  theme(legend.position = "top")
+```
+
+As we can see, both in the table and in the graph the most frequent
+factor **`r word_count$factor[1]`** will appear approximately:
+
+-   **`r word_count$relation[2]`** times more than the factor
+    **`r word_count$factor[2]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[2]`** times
+    more.
+-   **`r word_count$relation[3]`** times more than the factor
+    **`r word_count$factor[3]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[3]`** times
+    more.
+-   **`r word_count$relation[4]`** times more than the factor
+    **`r word_count$factor[4]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[4]`** times
+    more.
+-   **`r word_count$relation[5]`** times more than the factor
+    **`r word_count$factor[5]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[5]`** times
+    more.
+-   **`r word_count$relation[6]`** times more than the factor
+    **`r word_count$factor[6]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[6]`** times
+    more.
+-   **`r word_count$relation[7]`** times more than the factor
+    **`r word_count$factor[7]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[7]`** times
+    more.
+-   **`r word_count$relation[8]`** times more than the factor
+    **`r word_count$factor[8]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[8]`** times
+    more.
+-   **`r word_count$relation[9]`** times more than the factor
+    **`r word_count$factor[9]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[9]`** times
+    more.
+-   **`r word_count$relation[10]`** times more than the factor
+    **`r word_count$factor[10]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[10]`** times
+    more.
+-   **`r word_count$relation[11]`** times more than the factor
+    **`r word_count$factor[11]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[11]`** times
+    more.
+
+The last column of the table above shows the relative errors of each
+factor. The average of these errors will be the metric we will use to
+determine if the observed data are close or not to the theoretical data
+defined by Zipf's law. The relative error for this blaming will be
+**`r paste0(round(mean(word_count$error)*100,2),"%")`**
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Initial estimation
+
+This estimation calculate $x_{min}$, $\alpha$ and makes CDF and
+determine minimum $D$. With `poweRlaw` functions very easy to achive
+suggested steps 1-3.
+
+### Fit a discrete power law
+
+We can fit a discrete power law (like this) in the usual way:
+
+```{r}
+Valores <- word_count$count
+m_pl <- displ$new(Valores)
+m_pl
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Estimations: Xmin and $\alpha$
+
+#### General
+
+```{r}
+est_pl <- estimate_xmin(m_pl)
+est_pl
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+#### Complete estimations
+
+```{r}
+m_pl$setXmin(est_pl)
+m_pl
+```
+
+From this results, $x_{min}=$ `r est_pl$xmin` and $\alpha=$
+`r est_pl$pars`.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Plot CDF
+
+We can spice up the base graphics plot by changing the plotting
+defaults. First, we change the graphical parameters
+
+```{r}
+par(mar = c(3, 3, 2, 1), mgp = c(2, 0.4, 0), tck = -.01, cex.axis = 0.9, las = 1)
+```
+
+Then plot data and model, but adding in a background grid, and changing
+the symbol to get the following figure
+
+```{r}
+m_pl$setXmin(est_pl)
+plot(m_pl, pch = 21, bg = 2, panel.first = grid(col = "grey80"),
+xlab = "Number of occurrences ", ylab = "Acumulative probability")
+lines(m_pl, col = 3, lwd = 3)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+# Scanning whole range
+
+### Data frame Xmin-Alfa-D
+
+For each value of $X$ in our data, we estimate the values $x_{min}$ and
+$D$. Then, we create the corresponding data frame.
+
+```{r}
+data.s <- unique(Valores)
+
+d_est <- data.frame(X_min=sort(data.s)[1:(length(data.s)-2)], Alfa=rep(0,length(data.s)-2), D=rep(0,length(data.s)-2))
+
+for (i in d_est$X_min){
+  d_est[which(d_est$X_min == i),2] <- estimate_xmin(m_pl, xmins = i)$pars
+  d_est[which(d_est$X_min == i),3] <- estimate_xmin(m_pl, xmins = i)$gof
+}
+
+head(d_est)
+dim(d_est)
+```
+
+Next, we estimate the value of $x_{min}$ for which $D$ is minimum. Note
+that $D_{min}=$ `r d_est[which.min(d_est$D), 3]` . For this value,
+$x_{min}=$ `r d_est[which.min(d_est$D), 1]`.
+
+```{r}
+X.min_D.min <- d_est[which.min(d_est$D), 1]
+X.min_D.min 
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Plot Xmin vs D
+
+```{r eval=FALSE}
+ggplot(data=d_est, aes(x=X_min, y=D)) +
+  geom_text(aes( x = X.min_D.min, y = d_est[which.min(D), 3], label=X.min_D.min ), vjust=3.5)+
+  geom_text(aes( x = X.min_D.min, y = d_est[which.min(D), 3], label="X.min" ), vjust=2)+
+  geom_text(aes( x = min(X_min), y = d_est[which.min(D), 3], label=round(d_est[which.min(D), 3],4) ), vjust=-0.5)+
+  geom_text(aes( x = min(X_min), y = d_est[which.min(D), 3], label="D.min"), vjust=-2)+
+  geom_line() + 
+  theme_bw() +
+  #geom_vline(xintercept=X.min_D.min, colour="red") +
+  geom_segment(aes(x = X.min_D.min, xend = X.min_D.min, y = min(D)-0.02, yend = max(D)), linetype = "dashed", colour="red", size=0.7) +
+  geom_segment(aes(x = min(X_min), xend = X.min_D.min +1, y = min(D), yend = min(D)), linetype = "dashed", colour="red", size=0.7) +
+   labs(x = "Values of X_min", y = "Values of D", title = "X_min vs D") 
+  #annotate("text", x=X.min_D.min, y=max(d_est$D)/3*2, label=X.min_D.min)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Plot Xmin vs Alfa
+
+```{r eval=FALSE}
+ggplot(data=d_est, aes(x=X_min, y=Alfa)) +
+  geom_text(aes( x = X.min_D.min, y = min(Alfa), label=X.min_D.min ), vjust=-0.5)+
+  geom_text(aes( x = X.min_D.min, y = min(Alfa), label="X.min" ), vjust=1)+
+  geom_text(aes( x = min(X_min), y = d_est[which.max(Alfa), 2], label=round(d_est[which.max(Alfa), 2],4) ), vjust=1.5)+
+  geom_text(aes( x = min(X_min), y = d_est[which.max(Alfa), 2], label="Alfa.max"), vjust=3)+
+  geom_line() + 
+  theme_bw() +
+  #geom_vline(xintercept=X.min_D.min, colour="red") +
+  geom_segment(aes(x = X.min_D.min, xend = X.min_D.min, y = min(Alfa)-0.02, yend = max(Alfa)), linetype = "dashed", colour="red", size=0.7) +
+  geom_segment(aes(x = min(X_min), xend = X.min_D.min +1, y = d_est[which.max(Alfa), 2], yend = d_est[which.max(Alfa), 2]), linetype = "dashed", colour="red", size=0.7) +
+   labs(x = "Values of X_min", y = "Values of Alfa", title = "X_min vs Alfa") 
+  #annotate("text", x=X.min_D.min, y=max(Alfa)/3*2, label=X.min_D.min)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+# Fitted power-law on CDF curve
+
+We create the following data frame (empirical probabilities). Here $X$
+is the frecuencies of ocurrences (our observed data) and $Y$ is the
+relative frecuency (= rank /total data).
+
+```{r eval=FALSE}
+m_pl$setXmin(est_pl)
+Prob.emp <- plot(m_pl, draw = F)
+Prob.emp
+
+
+```
+
+Typically, the `lines` function in power law analysis calculates the
+power law fit parameters (such as the exponent) and performs
+goodness-of-fit tests.
+
+In the following data frame: Y = OJO and X=frecuencies of ocurrences
+from 24 to 81.
+
+```{r eval=FALSE}
+fit.data <- lines(m_pl, draw = F)
+fit.data
+```
+
+```{r eval=FALSE}
+ggplot(Prob.emp) + geom_point(aes(x=log(x), y=log(y))) + labs(x="log(k)", y="log(CDF)") + theme_bw() + 
+  geom_line(data=fit.data, aes(x=log(x), y=log(y)), colour="red")  
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+# Investigate goodness of fit
+
+### Bootstrapping (case 1)
+
+Bootstrapping refers to random sampling with replacement. This allows
+for the use of resampled data in better estimating a population
+distribution — whereby the sample itself is treated as the population.
+
+```{r}
+bootstrap_p(m_pl, seed = 123)
+```
+
+**Comments:**
+
+xmin search space truncated at 1e+05. You have three options
+
+1.  Increase xmax in estimate_xmins
+
+2.  Specify xmins explicitly
+
+3.  Ignore and hope for the best (which may be OK)
+
+Some of your data is larger than xmax. The xmax parameter is the upper
+bound of the xmin search space. You could try increasing it. If the
+estimated values are below xmax, it's probably OK not to worry about
+this. Expected total run time for 100 sims, using 1 threads is 3.28
+seconds.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Bootstrapping (case 2)
+
+For this instance, sampling was conducted across `no_of_sims`= 1,000
+bootstraps with `threads`=8 cores. Here is the output and calculated
+means and standard deviations:
+
+```{r}
+bs_pl <- bootstrap_p(m_pl, no_of_sims=1000, threads=8, seed = 123)
+#threads=core number of processor that used by function
+#parallel::detectCores() determines how many cores in your computer
+```
+
+```{r}
+bs_pl
+```
+
+**Comments:**
+
+$x_{min}$ search space truncated at 1e+05. You have three options
+
+1.  Increase $x_{max}$ in `estimate_xmins`
+
+2.  Specify $x_{min}$ explicitly
+
+3.  Ignore and hope for the best (which may be OK)
+
+Some of your data is larger than $x_{max}$. The xmax parameter is the
+upper bound of the xmin search space. You could try increasing it. If
+the estimated values are below $x_{max}$, it's probably OK not to worry
+about this. Expected total run time for 1000 sims, using 1 threads is
+3.23 seconds.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Mean: Bootstrapping (case 2)
+
+```{r}
+mean(bs_pl$bootstraps[, 1]) # Media of gof (es el KS)
+```
+
+```{r}
+mean(bs_pl$bootstraps[, 2]) # Media of Xmin
+```
+
+```{r}
+mean(bs_pl$bootstraps[, 3]) # Media of pars (es el alfa, exponente)
+```
+
+```{r}
+mean(bs_pl$bootstraps[, 4]) # Media of ntail
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### sd: Bootstrapping (case 2)
+
+```{r}
+sd(bs_pl$bootstraps[, 1]) # sd of gof (es el KS)
+```
+
+```{r}
+sd(bs_pl$bootstraps[, 2]) # sd of Xmin
+```
+
+```{r}
+sd(bs_pl$bootstraps[, 3]) # sd of pars (es el alfa, exponente)
+```
+
+```{r}
+sd(bs_pl$bootstraps[, 4]) # sd of ntail
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Mean+SD: Bootstrapping (case 2)
+
+```{r}
+Stat <- c("Measures", "gof (KS)", "xmin", "npars (alfa)", "ntail")
+mean <- cbind("Mean", mean(bs_pl$bootstraps[, 1]), mean(bs_pl$bootstraps[, 2]), mean(bs_pl$bootstraps[, 3]), mean(bs_pl$bootstraps[, 4]))
+SD <- cbind("SD", sd(bs_pl$bootstraps[, 1]), sd(bs_pl$bootstraps[, 2]), sd(bs_pl$bootstraps[, 3]), sd(bs_pl$bootstraps[, 4]))
+
+Tabla <- data.frame(rbind(mean, SD))
+names(Tabla) <- Stat
+
+library(knitr) # para activar kable
+library(kableExtra)
+
+kable(Tabla, alig="ccccc", caption="Estimaciones de los parametros")  %>%
+kable_styling() %>%                #library(kableExtra).... Solo para knit to html
+kable_classic_2(full_width = F)   #library(kableExtra)....Solo para knit to html
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### P value: Bootstrapping (case 2)
+
+```{r, echo=FALSE}
+bs_pl$p # P value
+```
+
+Additionally, the p-value was calculated where the hypothesis is as
+follows:
+
+```         
+H0: data is generated from a power law distribution
+
+H1: data is not generated from a power law distribution
+```
+
+If P value more than 5% means that null hypothesis cannot be rejected
+maybe it is a power-law distribution.
+
+```{r, eval=FALSE}
+bs_pl$p # P value
+```
+
+In this case the generated P value is `r bs_pl$p`, which is high and H0
+cannot be rejected at the 5% level of significance. This indicates that
+we cannot reject the null hypothesis that the data in question follows a
+power law distribution — i.e. based on this p-value, we are very
+confident that it does.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Plot: Bootstrapping (case 2)
+
+We can examine the fluctuations in the p-value across iterations to
+determine whether we can still reject the null hypothesis.
+
+Here is the generated plot of the cumulative mean and standard deviation
+statistics. The iterations across the cumulative mean and standard
+deviation were generated. In plotting the distribution, the final
+iterations were displayed.
+
+```{r}
+plot(bs_pl)
+```
+
+We can see here that across 1000 iterations, the p-value ranges between
+0.26 and 0.33. The indicated p-value of `r bs_pl$p` is according with
+these ranges. We can still be quite confident that we cannot reject the
+null hypothesis at the 5% level of significance given these ranges,
+which we can infer as evidence that the data follows a power law
+distribution.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Plot_trim: Bootstrapping (case 2)
+
+In plotting the distribution, the final 90% of iterations were
+displayed.
+
+```{r}
+## trim=0.1 only displays the final 90% of iterations
+ plot(bs_pl, trim = 0.1)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Histogram of Xmin: Bootstrapping (case 2)
+
+*Primera forma*
+
+```{r}
+hist(bs_pl$bootstraps[, 2]) # hist of Xmin
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+*Segunda forma*
+
+```{r}
+df_bs_pl <- bs_pl$bootstraps
+
+ggplot(data=df_bs_pl, aes(xmin)) + geom_histogram() + labs(x="X_min", y="frequency") + theme_bw()
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+## Histogram of index $\alpha$: Bootstrapping (case 2)
+
+*Primera forma*
+
+```{r}
+hist(bs_pl$bootstraps[, 3]) # hist of índex s
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+*Segunda forma*
+
+```{r}
+df_bs_pl <- bs_pl$bootstraps
+
+ggplot(data=df_bs_pl, aes(pars)) + geom_histogram() + labs(x="s", y="frequency") + theme_bw()
+```
+
+```{r, eval=FALSE, echo=FALSE}
+data.dist <- data.dist[data.dist$p_k>0,]
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Plot xmin vs Alfa: Bootstrapping (case 2)
+
+Initial estimated $\alpha$ and $x_{min}$ denoted with blue colour on the
+figure.
+
+```{r}
+alfa_D.min <- d_est[which.min(d_est$D), 2] # Which Alfa corresponds to min of D 
+
+ggplot(data=df_bs_pl, aes(x=xmin, y=pars)) + labs(x="Values of X_min", y="Values of Alfa") + theme_bw() + 
+  geom_point(shape=21, colour="black", fill="red", size=0.5, stroke=2, 
+             position = position_jitter(), alpha=0.6) +
+  geom_vline(xintercept=X.min_D.min, colour="blue") +
+  geom_hline(yintercept=alfa_D.min, colour="blue") +
+  
+  geom_text(aes( x = X.min_D.min-2, y = min(pars), label=X.min_D.min ), vjust=-0.5)+
+  geom_text(aes( x = X.min_D.min-2, y = min(pars), label="X.min" ), vjust=1)+
+  geom_text(aes( x = min(xmin)+5, y = alfa_D.min, label=round(alfa_D.min,4) ), vjust=-1.0)+
+  geom_text(aes( x = min(xmin)+5, y = alfa_D.min, label="Alfa.min"), vjust=-2.5)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+### Histogram of D: Bootstrapping (case 2)
+
+```{r}
+D.min <- d_est[which.min(d_est$D), 3] # Which D corresponds to min of Alfa 
+
+ggplot(data=df_bs_pl, aes(gof)) + geom_histogram() + labs(x="Values of D", y="Frequency") + geom_vline(xintercept=D.min, colour="red") + theme_bw()
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Fitting real distribution
+
+### Generate Xmin & Xmax pairs
+
+```{r}
+#generate Xmin & kmax pairs
+pairs <- as.data.frame(t(combn(sort(data.s), 2)))
+pairs$D <- rep(0, length(pairs$V1))
+pairs$gamma <- rep(0, length(pairs$V1))
+pairs
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Scan D for all (Xmin,Xmax) pairs
+
+```{r}
+#scan D for all Xmin-kmax pairs
+for (i in 1:length(pairs$D)){
+  m_pl$setXmin(pairs[i,1])
+  pairs[i,3]<- estimate_xmin(m_pl, xmin = pairs[i,1], xmax = pairs[i,2], distance = "ks")$gof
+  pairs[i,4]<- estimate_xmin(m_pl, xmin = pairs[i,1], xmax = pairs[i,2], distance = "ks")$pars
+}
+
+head(pairs)
+```
+
+```{r}
+bs_pl_sat_cut <- bootstrap_p(m_pl, xmins = pairs[which.min(pairs$D), 1], xmax = pairs[which.min(pairs$D), 2], no_of_sims = 1000, threads = 8)
+```
+
+Expected total run time for 1000 sims, using 8 threads is 1.49 seconds.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Xsat
+
+```{r}
+pairs
+pairs[which.min(pairs$D), 1] #X_{sat}
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Xcut
+
+```{r}
+pairs[which.min(pairs$D), 2] #X_{cut}
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### D
+
+```{r}
+#in this range
+pairs[which.min(pairs$D), 3] #D
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Alfa
+
+```{r}
+pairs[which.min(pairs$D), 4] #Alfa
+
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### P value
+
+```{r}
+bs_pl_sat_cut$p #p-value
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Resumen
+
+```{r}
+pairs[which.min(pairs$D), 1] -> x_sat; x_sat
+pairs[which.min(pairs$D), 2] -> x_cut; x_cut
+pairs[which.min(pairs$D), 4] -> Alfa; Alfa 
+```
+
+-   $X_{sat}=$ `r x_sat`.
+-   $X_{cut}=$ `r x_cut`.
+-   $D=$ `r pairs[which.min(pairs$D), 3]`.
+-   $\alpha=$ `r pairs[which.min(pairs$D), 4]`.
+-   $p=$ `r bs_pl_sat_cut$p` (by bootstrapping).
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Compare different distributions
+
+### Comparing distributions
+
+In order to compare distributions, we will use Vuong's test statistic
+(Vuong, 1989).
+
+The hypothesis being tested is
+
+```         
+H0 : Both distributions are equally close from the true distribution 
+     (The two models are equally close to the true data generating process)
+
+and
+
+H1 : One of the test distributions is closer to the true distribution
+     (One model is closer)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Vuong's test statistic
+
+The Vuong closeness test is a likelihood-ratio-based test for model
+selection using the Kullback–Leibler information criterion. This
+statistic makes probabilistic statements about two models. They can be
+nested, strictly non-nested or partially non-nested (also called
+overlapping). The statistic tests the null hypothesis that the two
+models are equally close to the true data generating process, against
+the alternative that one model is closer. It cannot make any decision
+whether the "closer" model is the true model.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Functions with With R
+
+1.  To perform this test we use the `compare_distributions` function1
+    and examine the `p_two sided` value.
+
+2.  The `compare_distributions` function also returns a
+    `one sided p-value`.
+
+3.  Essentially, the one sided p-value is testing whether the first
+    model is better than the second, i.e. a one sided test.
+
+4.  When comparing distributions, each model must have the same `xmin`
+    value.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Plot: different Xmin
+
+```{r}
+#powerlaw
+m_pl = displ$new(Valores)
+est_pl <- estimate_xmin(m_pl, xmins = x_sat, xmax = x_cut, distance = "ks")
+m_pl$setXmin(est_pl)
+m_pl$setPars(estimate_pars(m_pl))
+
+#lognormal
+m_ln = dislnorm$new(Valores)
+est_ln <- estimate_xmin(m_ln)
+m_ln$setXmin(est_ln)
+m_ln$setPars(estimate_pars(m_ln))
+
+#exponential
+m_exp = disexp$new(Valores)
+est_exp <- estimate_xmin(m_exp)
+m_exp$setXmin(est_exp)
+m_exp$setPars(estimate_pars(m_exp))
+
+#poisson
+m_poi = dispois$new(Valores)
+est_poi <- estimate_xmin(m_poi)
+m_poi$setXmin(est_poi)
+m_poi$setPars(estimate_pars(m_poi))
+```
+
+This figure compares different distributions with differents `xmin`.
+(red: power-law, green: lognormal, blue: Poisson, magenta: exponential)
+
+```{r}
+plot(m_pl)
+lines(m_pl, col="red")
+lines(m_ln, col="green")
+lines(m_poi, col="blue")
+lines(m_exp, col="magenta")
+```
+
+It seems that all distributions are fitted well except Poisson. We will
+investigate this formally in the following section.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Plot: equal Xmin
+
+```{r}
+#powerlaw
+m_pl = displ$new(Valores)
+est_pl <- estimate_xmin(m_pl, xmins = x_sat, xmax = x_cut, distance = "ks")
+m_pl$setXmin(est_pl)
+m_pl$setPars(estimate_pars(m_pl))
+
+#lognormal
+m_ln = dislnorm$new(Valores)
+est_ln <- estimate_xmin(m_ln)
+m_ln$setXmin(est_pl) # The same xmin value
+m_ln$setPars(estimate_pars(m_ln))
+
+#exponential
+m_exp = disexp$new(Valores)
+est_exp <- estimate_xmin(m_exp)
+m_exp$setXmin(est_pl) # The same xmin value
+m_exp$setPars(estimate_pars(m_exp))
+
+#poisson
+m_poi = dispois$new(Valores)
+est_poi <- estimate_xmin(m_poi)
+m_poi$setXmin(est_pl) # The same xmin value
+m_poi$setPars(estimate_pars(m_poi))
+```
+
+This figure compares different distributions with the same `xmin`. (red:
+power-law, green: lognormal, blue: Poisson, magenta: exponential)
+
+```{r}
+plot(m_pl)
+lines(m_pl, col="red")
+lines(m_ln, col="green")
+lines(m_poi, col="blue")
+lines(m_exp, col="magenta")
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Comparing with Lognormal
+
+```{r}
+#lognormal
+m_ln = dislnorm$new(Valores)
+est_ln <- estimate_xmin(m_ln)
+m_ln$setXmin(est_pl) # The same xmin value
+m_ln$setPars(estimate_pars(m_ln))
+
+```
+
+```{r}
+comp = compare_distributions(m_pl, m_ln)
+comp$test_statistic
+comp$p_two_sided 
+comp$p_one_sided 
+```
+
+```{r}
+help(compare_distributions)
+```
+
+It means we cannot reject $H_0$ since P value = `r comp$p_two_sided` and
+conclude that both distributions are equally close from the true
+distribution.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Comparing with Exponential
+
+```{r}
+
+#exponential
+m_exp = disexp$new(Valores)
+est_exp <- estimate_xmin(m_exp)
+m_exp$setXmin(est_pl) # The same xmin value
+m_exp$setPars(estimate_pars(m_exp))
+
+```
+
+```{r}
+comp = compare_distributions(m_pl, m_exp)
+comp$test_statistic
+comp$p_two_sided 
+comp$p_one_sided
+```
+
+It means we cannot reject $H_0$ since P value = `r comp$p_two_sided` and
+conclude that both distributions are equally close from the true
+distribution.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Comparing with Poisson
+
+```{r}
+#poisson
+m_poi = dispois$new(Valores)
+est_poi <- estimate_xmin(m_poi)
+m_poi$setXmin(est_pl) # The same xmin value
+m_poi$setPars(estimate_pars(m_poi))
+```
+
+```{r}
+comp = compare_distributions(m_pl, m_poi)
+comp$test_statistic
+comp$p_two_sided 
+comp$p_one_sided
+```
+
+It means we can reject H0 since P value = `r comp$p_two_sided` and
+conclude that one model is closer to the true distribution.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Reference
+
+Arnold, B. C., 1983, Pareto Distributions (International Cooperative
+Publishing House, Fairland, Maryland).
+
+Barndorff-Nielsen, O. E., and D. R. Cox, 1995, Inference and Asymptotics
+(Chapman and Hall, London).
+
+Clauset, A., Young, M., & Gleditsch, K. S. (2007). On the Frequency of
+Severe Terrorist Events. The Journal of Conflict Resolution, 51(1),
+58–87. <http://www.jstor.org/stable/27638538>
+
+Clauset, A., Shalizi, C. R., & Newman, M. E. J. (2009). Power-Law
+Distributions in Empirical Data. SIAM Review, 51(4), 661–703.
+<http://www.jstor.org/stable/25662336>
+
+Grünwald, P. D., 2007, The Minimum Description Length Principle (MIT
+Press, Cambridge).
+
+Handcock, M. S., and J. H. Jones, 2004, Theoretical Population Biology
+65, 413.
+
+Kass, R. E., and A. E. Raftery, 1995, Journal of the American
+Statistical Association 90, 773.
+
+Press, W. H., S. A. Teukolsky, W. T. Vetterling, and B. P. Flannery,
+1992, Numerical Recipes in C: The Art of Scientific Computing (Cambridge
+University Press, Cambridge, England), 2nd edition.
+
+Stone, M., 1974, Journal of the Royal Statistical Society B 36, 111.
+
+Vuong, Quang H. (1989). "Likelihood Ratio Tests for Model Selection and
+non-nested Hypotheses". Econometrica. 57 (2): 307–333.
+<doi:10.2307/1912557>. JSTOR 1912557.
+
+Wasserman, L., 2003, All of Statistics: A Concise Course in Statistical
+Inference (Springer- Verlag, Berlin).
+
+1.  N. L. Johnson, A. W. Kemp, and S. Kotz. (2005) Univariate Discrete
+    Distributions. Wiley, New York, 3rd edition.
+
+2.  Fagan, Stephen; Gençay, Ramazan (2010), "An introduction to textual
+    econometrics", in Ullah, Aman; Giles, David E. A. (eds.), Handbook
+    of Empirical Economics and Finance, CRC Press, pp. 133--153,
+    ISBN 9781420070361. P. 139: "For example, in the Brown Corpus,
+    consisting of over one million words, half of the word volume
+    consists of repeated uses of only 135 words."
+
+3.  Rigby, R. A., Stasinopoulos, D. M., Heller, G. Z., and De
+    Bastiani, F. (2019) Distributions for modeling location, scale, and
+    shape: Using GAMLSS in R, Chapman and Hall/CRC,
+    <doi:10.1201/9780429298547>. An older version can be found in
+    <https://www.gamlss.com/>.
+
+4.  N. Unnikrishnan Nair, P.G. Sankaran and N. Balakrishnan (2018).
+    Reliability Modelling and Analysis in Discrete Time, Academc Press,
+    <https://doi.org/10.1016/B978-0-12-801913-9.00003-8>.
+
+5.  Zipf George K. 1935. The psychology of language. Houghton-Mifflin.
+
+6.  Zipf George K. 1949. Human behavior and the principle of least
+    effort. Addison-Wesley.

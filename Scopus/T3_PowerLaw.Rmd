@@ -1,0 +1,593 @@
+---
+title: "Power Law: Social Resilience Topic 3" 
+subtitle: "Storymodelers Lab"
+author: Brian Llinás^[Computer Science Department, Old Dominion University, Norfolk VA, USA]
+fontsize: 13pt
+header-includes:
+  - \usepackage{amssymb}
+  - \usepackage{latexsym}
+  - \usepackage{amsmath,amsthm} 
+  - \usepackage{bm} 
+date: '`r format(Sys.time(), "%d/%m/%y")`' # ver https://bookdown.org/yihui/rmarkdown-cookbook/update-date.html
+lang: "en-US"
+output: 
+    html_document:
+          toc: true      # table of content true 
+          toc_depth: 4   # upto three depths of headings (specified by #, ## and ###) 
+          toc_float: true #toc a la izquierda #para word no disponible
+          collapsed: false #para word no disponible
+          number_section: true #para word no disponible
+          theme: readable #para word no disponible
+          number_sections: true   # if you want number sections at each table header
+          code_folding: show #para word no disponible
+          highlight: pygments 
+csl: science.csl
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+#knitr::opts_chunk$\alphaet(echo = FALSE)
+knitr::opts_chunk$set(message = FALSE)
+knitr::opts_chunk$set(fig.align = "center") #solo para html
+knitr::opts_chunk$set(fig.width = 8)
+knitr::opts_chunk$set(dpi = 1200)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+# Packages
+
+```{r, echo=TRUE, warning=FALSE, message=FALSE}
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+library(kableExtra)
+library(sads)
+library(latexpdf)
+library(igraph)
+library(poweRlaw)
+library(readr)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Abstract
+
+A statistical analysis of the blaming data collected in Colombia is
+presented. For the analyses, the following procedures were carried out:
+(1) Data preprocessing, (2) Data cleaning, (3) Zipf analysis. The R
+statistical program was used.
+
+**Keywords**: Blaming, Geopolitics, Colombia, Zipf's law.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Introduction
+
+For the development of the analysis, a database was used, which was
+constructed from the blaming captured in different news items in the
+countries of Colombia regarding the perception of the news about the
+events that occurred due to the migratory effects in Colombia. The
+databases contain variables such as frustration:
+
+-   Geopolitics: blaming towards geopolitics.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Methodology
+
+### Data Lecture
+
+We note that our initial database has as columns factors associated with
+each blaming and observations of the analyzed periods from January 2015
+to December 2020, analyzed month by month.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Data Clean
+
+For the data processing, we will rename the column `...1`, which is
+associated with the study period, so that we will call it `date`. For
+the columns related to the factors, we must transpose them into a single
+column called `factor`. Finally, the values in these columns will become
+the variable `freq`, which is the amount of the factor perceived during
+the analysis period.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Zipf Analysis
+
+To perform the zip analysis, we must group by factors and add their
+total frequencies. We order from highest to lowest to determine the
+element with the highest frequency and, from there, perform the zip
+analysis. The idea is to compare the observed frequency with the
+theoretical frequency. To calculate the theoretical frequency, we must
+take as base the higher frequency, which would be the frequency of the
+factor that repeats more, and divide it between the rank of the element
+to the frequency to calculate.
+
+$$Zip_{frequency}=\frac{X}{i}$$
+
+where:
+
+-   $X:$ the frequency of the factor that repeats more
+
+-   $i:$ the rank of the element to the frequency to calculate
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Suggested steps
+
+Authors of refered bibliographies suggested the following steps to
+analyse dataset.
+
+1.  Initial estimation of $x_{min}$ and $\alpha$, using the methods
+    described in Section *Fitting power laws to empirical data*.
+
+2.  Make a CDF (cumulative distribution function) with that.
+
+3.  Kolgomorov-Smirnov test to determine minimum $D$.
+
+4.  Repeat steps 1-3 to scanning whole $(x_{min}, x_{max})$ range to
+    identify $x_{min}$ for which $D$ is minimal.
+
+5.  Investigate goodness of fit with bootstrapping, using the method
+    described in Section *Testing the power-law hypothesis*.
+
+-   Assign $D_{min}$ to $x_{min}$ which is $D^{real}$.
+
+-   Generate a data sequence of points with bootstrapping and
+    determining $D^{syntetic}$.
+
+-   Determine $P$ value of null hypothesis that claims the distribution
+    is power-law.
+
+-   If resulting P-value is greater than 0.05 ($p\geq 0.05$) than null
+    hypothesis is true (that's say, the power law is a plausible
+    hypothesis for the data), otherwise it is rejected.
+
+6.  Fitting real distribution
+
+-   Choose $k_{cut}$ and $k_{sat}$ to optimal cut.
+
+-   Estimate $\alpha$ (scaling parameter).
+
+-   Calculate $D$ with Kolgomorov-Smirnov test.
+
+-   Repeat steps 1-3 to determine real $k_{cut}$ and $k_{sat}$ for which
+    $D$ is minimal.
+
+7.  Compare the power law with alternative hypotheses via a likelihood
+    ratio test, as described in Section *Alternative distributions*.
+
+-   For each alternative, if the calculated likelihood ratio is
+    significantly different from zero, then its sign indicates whether
+    the alternative is favored over the power-law model or not.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Our data
+
+### Complete data
+
+```{r}
+# Data Lecture
+# library(readr)
+data <- read.csv("power_law.csv")
+head(data)
+
+# data[c(1:5,(NROW(data)-5):NROW(data)),] %>%
+#   kable(align = "lcc")  %>% #solo para html
+#   kable_styling() %>%
+#   kable_classic_2(full_width = F)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Clean data
+
+```{r}
+# Data clean
+data_clean <- data %>% 
+  filter(topic == 3,
+         Cited.by > 0) %>% 
+  select(Title, Cited.by)
+head(data_clean)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Zipf analysis
+
+### Table
+
+```{r}
+# Zip Analysis
+
+# Set alpha value
+alpha <- 1
+
+# Perform the Zipf analysis
+word_count <- data_clean %>%
+  arrange(desc(Cited.by)) %>%
+  mutate(factor = Title,
+         count = Cited.by,
+         prop = round(count / sum(count), 2),
+         relation = round(first(count) / count, 2),
+         rank = row_number(),
+         zipfs = ifelse(rank == 1, count, 
+                        round(first(count) / rank^alpha, 2)),
+         error = round(abs(zipfs - count) / zipfs, 2)
+  ) %>%
+  relocate(rank, .before = factor)
+
+df.word_count <- word_count
+head(df.word_count)
+dim(df.word_count)
+
+# Display the results in a table
+word_count %>%
+  kable(align = "lcc") %>% 
+  kable_styling(latex_options = "HOLD_position") %>%
+  kable_classic_2(full_width = FALSE) %>%
+  row_spec(which(word_count$count == 0), bold = TRUE, 
+           color = "white", background = "red")
+
+```
+
+```{r}
+library(openxlsx) 
+write.xlsx(df.word_count, "T3_word_count.xls", 
+           sheetName = "hoja_de_trabajo", rowNames = FALSE)
+write.csv(df.word_count,file="T3_word_count.csv") 
+
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Plot
+
+```{r}
+
+ggplot(word_count, aes(x = rank, y = count)) + 
+  geom_point(aes(color = "observed")) +
+  geom_line(aes(color = "observed")) +
+  theme_bw() + 
+  geom_point(aes(y = zipfs, color = "theoretical")) +
+  geom_line(aes(y = zipfs, color = "theoretical")) +
+  labs(x = "Rank", y = "Count", title = "Zipf's law visualization for Topic 3") +
+  scale_colour_manual(name = "Word count", values=c("theoretical" = "red", "observed" = "black")) +
+  theme(legend.position = "top")
+```
+
+As we can see, both in the table and in the graph the most frequent
+factor **`r word_count$factor[1]`** will appear approximately:
+
+-   **`r word_count$relation[2]`** times more than the factor
+    **`r word_count$factor[2]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[2]`** times
+    more.
+-   **`r word_count$relation[3]`** times more than the factor
+    **`r word_count$factor[3]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[3]`** times
+    more.
+-   **`r word_count$relation[4]`** times more than the factor
+    **`r word_count$factor[4]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[4]`** times
+    more.
+-   **`r word_count$relation[5]`** times more than the factor
+    **`r word_count$factor[5]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[5]`** times
+    more.
+-   **`r word_count$relation[6]`** times more than the factor
+    **`r word_count$factor[6]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[6]`** times
+    more.
+-   **`r word_count$relation[7]`** times more than the factor
+    **`r word_count$factor[7]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[7]`** times
+    more.
+-   **`r word_count$relation[8]`** times more than the factor
+    **`r word_count$factor[8]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[8]`** times
+    more.
+-   **`r word_count$relation[9]`** times more than the factor
+    **`r word_count$factor[9]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[9]`** times
+    more.
+-   **`r word_count$relation[10]`** times more than the factor
+    **`r word_count$factor[10]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[10]`** times
+    more.
+-   **`r word_count$relation[11]`** times more than the factor
+    **`r word_count$factor[11]`**, bearing in mind that, under Zipf's
+    law, it should theoretically be **`r word_count$rank[11]`** times
+    more.
+
+The last column of the table above shows the relative errors of each
+factor. The average of these errors will be the metric we will use to
+determine if the observed data are close or not to the theoretical data
+defined by Zipf's law. The relative error for this blaming will be
+**`r paste0(round(mean(word_count$error)*100,2),"%")`**
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Initial estimation
+
+This estimation calculate $x_{min}$, $\alpha$ and makes CDF and
+determine minimum $D$. With `poweRlaw` functions very easy to achive
+suggested steps 1-3.
+
+### Fit a discrete power law
+
+We can fit a discrete power law (like this) in the usual way:
+
+```{r}
+Valores <- word_count$count
+m_pl <- displ$new(Valores)
+#m_pl
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+### Estimations: Xmin and $\alpha$
+
+#### General
+
+```{r}
+est_pl <- estimate_xmin(m_pl)
+est_pl
+```
+
+```{r}
+MyLabel <- c("Method", "alfa", "sd_alfa", "Xmin", "sd_xmin", "ntail", "sd_ntail", "Stat", "sd_stat", "P_value")
+alfa <-round(est_pl$pars, 3)
+sd_alfa<-"NA"
+xmin <-round(est_pl$xmin, 3)
+sd_xmin <-"NA"
+ntail <-round(est_pl$ntail, 3)
+sd_ntail <-"NA"
+stat <- round(est_pl$gof, 3)
+sd_stat <-"NA"
+P_value <- "NA"
+KS_result <- c("MLE-KS",  alfa , sd_alfa, xmin, sd_xmin, ntail, sd_ntail, stat, sd_stat, P_value)
+
+KS_df <- data.frame(rbind(KS_result))
+names(KS_df) <- MyLabel
+KS_df
+
+```
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+#### Complete estimations
+
+```{r}
+m_pl$setXmin(est_pl)
+#m_pl
+```
+
+From this results, $x_{min}=$ `r est_pl$xmin` and $\alpha=$
+`r est_pl$pars`.
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+# Investigate goodness of fit
+
+
+
+### Bootstrapping (case 2)
+
+For this instance, sampling was conducted across `no_of_sims`= 1,000
+bootstraps with `threads`=8 cores. Here is the output and calculated
+means and standard deviations:
+
+```{r}
+bs_pl <- bootstrap_p(m_pl, no_of_sims=1000, threads=8, seed = 123)
+#threads=core number of processor that used by function
+#parallel::detectCores() determines how many cores in your computer
+```
+
+```{r, eval=FALSE}
+bs_pl
+```
+
+**Comments:**
+
+$x_{min}$ search space truncated at 1e+05. You have three options
+
+1.  Increase $x_{max}$ in `estimate_xmins`
+
+2.  Specify $x_{min}$ explicitly
+
+3.  Ignore and hope for the best (which may be OK)
+
+Some of your data is larger than $x_{max}$. The xmax parameter is the
+upper bound of the xmin search space. You could try increasing it. If
+the estimated values are below $x_{max}$, it's probably OK not to worry
+about this. Expected total run time for 1000 sims, using 1 threads is
+3.23 seconds.
+
+
+
+```{r}
+MyLabel <- c("Method", "alfa", "sd_alfa", "Xmin", "sd_xmin", "ntail", "sd_ntail", "Stat", "sd_stat", "P_value")
+alfa <- round(mean(bs_pl$bootstraps[, 3]),3) # Media of pars (es el alfa, exponente)
+sd_alfa<-round(sd(bs_pl$bootstraps[, 3]),3) # sd of pars (es el alfa, exponente)
+xmin <-round(mean(bs_pl$bootstraps[, 2]),3) # Media of Xmin
+sd_xmin <-round(sd(bs_pl$bootstraps[, 2]),3) # sd of Xmin
+ntail <-round(mean(bs_pl$bootstraps[, 4]),3) # Media of ntail
+sd_ntail <- round(sd(bs_pl$bootstraps[, 4]),3) # sd of ntail
+stat <- round(mean(bs_pl$bootstraps[, 1]),3) # Media of gof (es el KS)
+sd_stat <- round(sd(bs_pl$bootstraps[, 1]),3) # sd of gof (es el KS)
+P_value <- round(bs_pl$p,3)
+boot_result <- c("Bootstrapping", alfa , sd_alfa, xmin, sd_xmin, ntail, sd_ntail, stat, sd_stat, P_value)
+
+boot_df <- data.frame(rbind(boot_result))
+names(boot_df) <- MyLabel
+boot_df
+```
+
+
+The p-value was calculated where the hypothesis is as
+follows:
+
+```         
+H0: data is generated from a power law distribution
+
+H1: data is not generated from a power law distribution
+```
+
+If P value more than 5% means that null hypothesis cannot be rejected
+maybe it is a power-law distribution. In this case the generated P value is `r bs_pl$p`, which is high and H0
+cannot be rejected at the 5% level of significance. This indicates that
+we cannot reject the null hypothesis that the data in question follows a
+power law distribution — i.e. based on this p-value, we are very
+confident that it does.
+
+
+
+```{r}
+Estimation <- data.frame(rbind(KS_df, boot_df))
+
+library(openxlsx) 
+write.xlsx(Estimation, "T3_Estimation.xls", 
+           sheetName = "hoja_de_trabajo", rowNames = FALSE)
+write.csv(Estimation,file="T3_Estimation.csv") 
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+
+<!-- Separador -->
+
+<hr>
+
+# Reference
+
+Arnold, B. C., 1983, Pareto Distributions (International Cooperative
+Publishing House, Fairland, Maryland).
+
+Barndorff-Nielsen, O. E., and D. R. Cox, 1995, Inference and Asymptotics
+(Chapman and Hall, London).
+
+Clauset, A., Young, M., & Gleditsch, K. S. (2007). On the Frequency of
+Severe Terrorist Events. The Journal of Conflict Resolution, 51(1),
+58–87. <http://www.jstor.org/stable/27638538>
+
+Clauset, A., Shalizi, C. R., & Newman, M. E. J. (2009). Power-Law
+Distributions in Empirical Data. SIAM Review, 51(4), 661–703.
+<http://www.jstor.org/stable/25662336>
+
+Grünwald, P. D., 2007, The Minimum Description Length Principle (MIT
+Press, Cambridge).
+
+Handcock, M. S., and J. H. Jones, 2004, Theoretical Population Biology
+65, 413.
+
+Kass, R. E., and A. E. Raftery, 1995, Journal of the American
+Statistical Association 90, 773.
+
+Press, W. H., S. A. Teukolsky, W. T. Vetterling, and B. P. Flannery,
+1992, Numerical Recipes in C: The Art of Scientific Computing (Cambridge
+University Press, Cambridge, England), 2nd edition.
+
+Stone, M., 1974, Journal of the Royal Statistical Society B 36, 111.
+
+Vuong, Quang H. (1989). "Likelihood Ratio Tests for Model Selection and
+non-nested Hypotheses". Econometrica. 57 (2): 307–333.
+<doi:10.2307/1912557>. JSTOR 1912557.
+
+Wasserman, L., 2003, All of Statistics: A Concise Course in Statistical
+Inference (Springer- Verlag, Berlin).
+
+1.  N. L. Johnson, A. W. Kemp, and S. Kotz. (2005) Univariate Discrete
+    Distributions. Wiley, New York, 3rd edition.
+
+2.  Fagan, Stephen; Gençay, Ramazan (2010), "An introduction to textual
+    econometrics", in Ullah, Aman; Giles, David E. A. (eds.), Handbook
+    of Empirical Economics and Finance, CRC Press, pp. 133--153,
+    ISBN 9781420070361. P. 139: "For example, in the Brown Corpus,
+    consisting of over one million words, half of the word volume
+    consists of repeated uses of only 135 words."
+
+3.  Rigby, R. A., Stasinopoulos, D. M., Heller, G. Z., and De
+    Bastiani, F. (2019) Distributions for modeling location, scale, and
+    shape: Using GAMLSS in R, Chapman and Hall/CRC,
+    <doi:10.1201/9780429298547>. An older version can be found in
+    <https://www.gamlss.com/>.
+
+4.  N. Unnikrishnan Nair, P.G. Sankaran and N. Balakrishnan (2018).
+    Reliability Modelling and Analysis in Discrete Time, Academc Press,
+    <https://doi.org/10.1016/B978-0-12-801913-9.00003-8>.
+
+5.  Zipf George K. 1935. The psychology of language. Houghton-Mifflin.
+
+6.  Zipf George K. 1949. Human behavior and the principle of least
+    effort. Addison-Wesley.
