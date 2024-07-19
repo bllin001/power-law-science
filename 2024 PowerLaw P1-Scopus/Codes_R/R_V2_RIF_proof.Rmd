@@ -1,0 +1,688 @@
+---
+title: "Rank Distribution and RIF Index"
+author: "Brian LLinas"
+date: "2024-06-20"
+output: 
+  word_document: default
+  html_document:
+          toc: true      # table of content true
+          toc_depth: 4   # upto three depths of headings (specified by #, ## and ###)
+          toc_float: true #Con true, toc sale al margen izquierdo de la página; de lo contrario, arriba
+          collapsed: false
+          smooth_scroll: false
+          number_sections: true   # if you want number sections at each table header
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Title, Abstract and Keywords
+
+
+### Title
+
+1. **Modeling Rank Distribution and the Relative Importance Factor Index in Power-Law Models: Application to Social Resilience Using Scopus Databases**  
+
+
+2. OTRO POSIBLE TITULO: Modeling Rank Distribution and Introducing the Relative Importance Factor Index in Heavy-Tailed Distributions:  Application to Social Resilience Using Scopus Databases
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Abstract
+
+Heavy-tailed distributions, such as the power-law distribution, are prevalent in both natural and human-made phenomena, characterized by their slow-decaying tails. Previous studies have primarily focused on modeling these distributions based on frequencies, often neglecting the estimation of rank distributions. This paper addresses this gap by introducing a novel approach to model the rank distribution of frequent factors and by defining the Relative Importance Factor (RIF) index. The first objective is to develop and validate a formula that accurately models the rank distribution of frequent factors. The second objective is to introduce the RIF index, comparing the probability of a factor occupying the first position with its proba-bility of being in any other position within the range. We apply our methodology to databases downloaded from Scopus, focusing on social resilience and analyzing the number of citations of articles. Using maxi-mum likelihood estimation (MLE) to determine power-law parameters and the Kolmogorov-Smirnov (KS) statistic to estimate the optimal threshold, we ensure robust modeling. Additionally, we employ bootstrap-ping techniques to assess the uncertainty of our estimates. By modeling the rank distribution and introduc-ing the RIF index, this study enhances the understanding of heavy-tailed distributions and provides a valua-ble tool for analyzing complex systems.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Keywords
+
+Power-law distribution; Rank distribution; Relative Importance Factor (RIF); Heavy-tailed distributions; Social resilience; Citation analysis
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+#	1. Introduction
+
+Heavy-tailed distributions are common in both natural and human-made phenomena. These probability distributions are characterized by a slower decay in their tails compared to the normal or exponential distribution. Several distributions that fall into this category include the log-normal and stretched exponential distributions, among others. In addition to these, the most well-known heavy-tailed distribution is the power-law distribution (Jiang et al., 2023). Besides its ability to describe phenomena with heavy-tailed distributions, the power-law model has captured the interest of researchers in various disciplines because it can also be applied to analyze the behavior of many complex systems. This makes it ideal for describing phenomena in diverse areas (Corral and Gonzalez, 2019; Blasius, 2020; Chen, 2021; Jiang, and de Rijke, 2021; Sethna, 2022). However, limitations in data collection often result in empirical datasets that cover a narrow observation range, complicating the clear identification of power-law behavior (Navas-Portella et al., 2019).
+
+Power-law distributions have several characteristics. One of them is their scale-invariance property, which means that the shape of the distribution remains constant regardless of the scale at which it is observed (Corral and Gonzalez, 2019; Banshal, 2020). Another is that when the entire range is plotted on a linear axis, the curve takes the shape of a perfect "L". Moreover, when represented on a logarithmic scale, the curve always appears straight (Chen et al., 2020; Banshal, 2020).
+
+In computer science, the power law has been applied to the study of networks, where it has been observed that a few nodes have an extremely high number of connections while most have few (Artico et al., 2020; Devlin, 2021; Somin et al., 2022). This pattern has also been observed in social networks, where a few users have a large number of followers, and most have few (Xu et al., 2019; Arthur and Williams, 2019; Rajput et al., 2020). Additionally, in risk management, the power law is used to model the occurrence of extreme events, such as natural disasters (Pisarenko and Rodkin, 2019; Yum, 2023; Sohn et al., 2023) or financial crises (Dufrénot and Paret, 2019; Taleghani, 2020; Ghosh et al., 2021; Ben Yaala and Henchiri, 2023).
+
+In economics, it has been used to describe the distribution of wealth, where a small fraction of the population holds most of the financial resources while another suffers from extreme poverty (Masseran, 2019; Cardoso et al., 2020; Safari et al., 2020; Puttanapong et al., 2022; Kumer, 2024). Similarly, power laws have been used to study the distribution of crime, where a few criminals commit most of the crimes while the majority commit only a few (He et al., 2023; Ng et al., 2023). In ecology, it has been employed to model the distribution of forest types (Atkins et al., 2022), freshwater fishes (Baumgartner and Peláez, 2024), hot-spring microbiomes (Li and Ma, 2019), among others. In physics, power laws are fundamental for studying the behaviors of the decay rate as a link between dissociation energy and temperature (Fischer and Schweikhard, 2020), fully developed turbulent flows in a smooth pipe (Afzal et al., 2023), and nonlinear phonon hydrodynamics (Sciacca and Jou, 2024).
+
+In the health sector, power laws have been used to model the distribution of epidemics, where a few outbreaks can infect a large number of people, while most outbreaks affect a much smaller number (Blasius, 2020; Neipel et al., 2020; Jha, 2020). This model has also been applied to analyze the distribution of health resources, such as the availability of hospital beds or the allocation of medications, where a few hospitals or health centers receive the majority of resources (Srivastav et al., 2021; Dong et al., 2021). 
+
+In the field of academic publications, the academic influence of articles, journals, authors, etc., has been studied for several decades. Currently, one of the most widely used metrics and long recognized as an important indicator for evaluating the impact of a journal or author is the number of citations (Zhao et al., 2019). Numerous studies have revealed that the citation distribution of scientific articles follows a power law (Thelwall and Nevill, 2018; Arroyo-Machado et al., 2020; Benatti et al., 2023). In particular, the number of articles with a specific number of citations $x$ is proportional to $x$ raised to a negative scale exponent (Popescu, 2003; Banshal, 2020).
+
+It is emphasized that previous studies model the power-law distribution based solely on frequencies but do not estimate the distribution of the rank. Therefore, firstly, in this work, we present and demonstrate a formula that allows us to model the distribution of the rank of the most frequent factors. Secondly, we introduce a parameter, which we will call Relative Importance Factor index (RIF index). The RIF index compares the probability of a factor occupying a given position with the probability of it being in any higher position within the range. This innovation provides a new perspective for evaluating the relative prominence and importance of factors, an aspect that has not been considered in previous studies.
+
+**[TWO OPTIONS ARE PRESENTED AS NAMES. For continuation, the first one (the preferred one) will always be mentioned**
+
+**1. Relative Importance Factor index (RIF index).**
+
+**2. Relative Prominence Factor index (RPF index). ]**
+
+
+
+The proposed theory will be applied using databases downloaded from Scopus in the area of social resilience. In particular, we will focus on the number of citations of articles published in this area. This approach allows us to identify citation distribution patterns and evaluate how academic attention is concentrated on certain articles and specific topics but based on the RIF index. The choice of social resilience as a study area responds to the growing importance of this topic in the context of social sciences and its relevance for public policy formulation and the implementation of resilient practices in communities and organizations. According to Dagdeviren et al. (2020), social resilience depends on power relations, rules/institutions, and resource distribution, which are interconnected. Without favorable conditions in these three elements, individuals may be overwhelmed by crises or survive through harmful mechanisms.
+
+The article is organized as follows. Section 1 contains the introduction. In Section 2, we explain the power-law model and the different methods for estimating the scale parameter and the optimal threshold of the model. In Section 3, we introduce the distribution of the rank and the so-called Relative Importance Factor index. In Section 4, we present an application. Finally, in Section 5, we present the conclusions. 
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# 2. Power-law for data frequencies
+
+### 2.1 The power-law model
+
+
+Power-law distributions can appear in two forms: continuous distributions, which govern continuous real numbers, and discrete distributions, where the quantity of interest can only take a discrete set of values, typically positive integers (Clauset et al., 2009). Variables of the problem are defined as follows: (1) $V$ denotes the variable of interest; (2) $V$ is composed of several factors $V_i$, $i=1$, $2$, $\ldots$, $n$; and (3) $x$ is the frequency of occurrence of one factor within $V$. Considering that our data capture the frequency with which each $V_i$ occurs, our study deals with a discrete problem. Based on that, the discrete power-law model to estimate the probability that the factor $V_i$ within $V$ appears with frequency $x$ can be defined as
+
+$$ f(x) = P(X = x) = \frac{C}{x^{\alpha}} $$
+where $X$ represents the random variable corresponding to the frequency of occurrences,  $\alpha > 0$ is the exponent or scaling parameter for $v$, indicating the steepness of the distribution, and $C$ is a normalization constant to ensure the probabilities sum up to 1 for $V$. Both $\alpha$ and $C$ depend on the distribution and can be found in Clauset et al. (2009). This distribution diverges to zero when $x \rightarrow 0$, so there must be a lower bound $x_{\text{min}} > 0$ for the behavior of the power-law. The normalizing constant $C$ is calculated as follows:
+
+$$ C \;=\; [\zeta_H(\alpha, x_{\text{min}})]^{-1} $$
+
+where $\zeta_H(\alpha, x_{\text{min}})$ is the generalized or Hurwitz zeta function (Zaghloul, 2019): 
+
+$$\zeta_H\left(\alpha,\ x_{min}\right)\;=\;\sum_{i=0}^{\infty}{(i+\ x_{min})}^{-\alpha}$$
+
+The cumulative distribution function $F$ of a power law is given by
+
+$$ F(x)\;= \; C \cdot \zeta_H(\alpha, x) \;= \;\frac{\zeta_H(\alpha, x)}{\zeta_H(\alpha, x_{\min})} $$
+
+### 2.2 Estimations of the parameters
+
+To ensure accurate estimation of the power-law exponent $\alpha$ and determine the range over which the power-law behavior is applicable, it is necessary to decide on the lower bound $x_{\text{min}}$. This estimation helps identify the specific part of the media coverage distribution where the power-law model is valid. Moreover, obtaining an estimate $x_{\text{min}}$ is crucial for deriving an unbiased estimate of the power-law exponent $\alpha$. According to Clauset et al. (2009), if we assume that our data are sampled from a power-law distribution for values of $x$ greater than or equal to $x_{\text{min}}$, the maximum likelihood estimator (MLE) $\widehat{\alpha}$ for $\alpha$ in the discrete case is defined as
+
+$$ \widehat{\alpha} \; \approx \; 1 \;+\; n \,\left[\sum_{i=1}^{n} \, \ln\left(\frac{x_i}{\widehat{x}_{\text{min}} \,-\, 0.5}\right)\right]^{-1} $$
+
+where $x_i$ is the number of occurrences by the $i$-th factor ($i = 1, \ldots, n$) and are the observed values of $x$ such that $x \geq \widehat{x}_{\text{min}}$, where $\widehat{x}_{\text{min}}$ is the estimated value of $x_{\text{min}}$. We estimate $\widehat{\alpha}$ using the maximum likelihood (ML) method. The corresponding log-likelihood function for this estimation process is derived from the data of $V$. Note in the above formula that, to calculate $\widehat{\alpha}$, we must first estimate $x_{\text{min}}$. To estimate the lower bound on the power-law $x_{\text{min}}$, we used a metric known as the Kolmogorov-Smirnov (KS) statistic (Ramos et al., 2024), which is defined as the maximum difference between $G(x)$, the cumulative distribution function (CDF) of the observations, and $F(x)$, the CDF of the power law that optimally fits the data $x \geq x_{\text{min}}$. The KS statistic is defined as
+$$ KS \;=\; \max_{x \,\geq\, x_{\text{min}}} |G(x) \,-\, F(x)| $$
+The fitting process is sometimes performed by linear regression using logarithmically transformed variables. This approach is used because applying the logarithm to the power law function results in
+
+$$ \ln(f(x)) = \ln(C) - \alpha \ln(x) $$
+
+Thus, a power law appears as a straight line with slope $\alpha$ in a logarithmic plot. It is important to note that changes in the scale parameter can affect the slope of the curve in the log-log plot, resulting in changes in the shape and behavior of the distribution represented by the power law. The bootstrapping procedure is used to analyze the uncertainty associated with exponent estimation. It consists of randomly selecting data samples with replacement and then applying the MLE procedure with a KS cutoff on that sample. This process is repeated several times to evaluate the uncertainty. In this study, 1000 iterations were performed on all data sets. In addition, we perform a particular hypothesis test and provide the corresponding p-value to test $H_0$: one power-law distribution fits adequately versus $H_1$: another distribution might fit better. We will use the R 4.3.1 package poweRlaw (Gillespie, 2014) to conduct all the aforementioned analyses on datasets downloaded from Scopus, specifically in the field of social resilience.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+# 3	Power-law for rank and RIF index
+
+## 3.1 Relation between the Frequencies and the Rank
+
+
+For the variable $V$, which is composed of several factors $V_i$, $i = 1, 2, \ldots, n$, we will suppose that the frequency of occurrences $x$ of each factor $V_i$ is a descending ordered series. Let $x(r)$ denote the frequency of occurrence of the factor $V_i$ at rank $r$, where $r$ is the rank of the factor within the variable $V$. That is,
+
+$$ x(r) \geq x(r+1), \quad \text{for all} \; r \geq 1 $$
+This means that the frequency of occurrence decreases as the rank increases. According to Popescu (2003), Zipf’s law of rank-frequency states that, in a generally ordered set of data, the frequency of occurrence $x(r)$ of an element is inversely proportional to its rank $r$:
+
+
+$$ x(r) \;=\; \delta \, r^{\,\beta} $$
+
+where $r$ is the rank of the element (1 for the most frequent, 2 for the second most frequent, etc.); $x(r)$ is the frequency of the element $v_i$ at rank $r$ for $v$; $\beta < 0$ is the power law exponent, and $\delta > 0$ is a constant of proportionality. This implies that
+
+$$ \ln(x(r)) \;=\; \ln(\delta)\; +\; \beta \,\ln(r) $$
+
+To estimate the parameters $\delta$ and $\beta$, we only need to fit the regression model with the response variable $\ln(x(r))$ and the explanatory variable $\ln(r)$. But the method of estimation for the parameters $\delta$ and $\beta$ can vary depending on the size of the data, i.e., the number of factors $V_i$ within $V$. For datasets with a large number of factors, methods such as maximum likelihood estimation (MLE) are preferred due to their robustness and efficiency. MLE can provide precise estimates even with large sample sizes.nFor smaller datasets, ordinary least squares (OLS) regression can be used to estimate the parameters. OLS is simpler and computationally less intensive, making it suitable for smaller samples where computational resources may be limited. Additionally, bootstrapping techniques can be employed to assess the variability and confidence intervals of the estimated parameters, especially in cases where the sample size is small or the data exhibits significant variability. This approach involves repeatedly resampling the data with replacement and recalculating the estimates to build a distribution of the parameter estimates. In summary, depending on the number of factors in $V$, different estimation techniques can be employed to accurately determine the parameters $\delta$ and $\beta$, ensuring the reliability of the rank-frequency relationship described by Zipf’s law. Based on the above, once these estimates have been found, we can write 
+$$x(r) \;=\; \widehat{\delta} \, r^{\,\widehat{\beta}}$$
+With these estimates, we can then estimate the rank distribution (see Section 3.2).
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+
+
+
+```{r, echo=FALSE, eval=FALSE}
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amsthm}
+
+\begin{document}
+
+\section*{Estimation of the Distribution of the Rank}
+```
+
+## 3.2 Estimation of the Distribution of the Rank
+
+In this section, we will demonstrate one of the primary objectives mentioned in the introduction: estimating the distribution of the rank of the most frequent factors.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+**Theorem 3.2.1.** Let $V$ be a variable composed of several factors $V_i$, $i = 1, 2, \ldots, n$, with descending ordered frequencies of occurrence $x(r)$ for each factor $V_i$ at rank $r$, where $r$ is the rank of the factor within $V$. That is, $x(r) \geq x(r+1)$ for all $r \geq 1$. Suppose that $V$ follows a power-law distribution with estimated scale parameter $\hat{\alpha}$ and threshold $\widehat{x}_{\text{min}}$,  and  normalization constant $\hat{C}$, ensuring that the probabilities sum to 1 for $V$. Then, for all ranks $r$ such that $x(r) \geq \widehat{x}_{\text{min}}$, the estimated probability $\hat{P}(R = r)$ that a factor $V_i$ occupies rank $r$ is given by:
+   
+   (a) $\hat{P}(R = r) = \frac{\hat{B}}{\hat{P}(X = x(r))}$.
+   
+   (b) $\hat{P}(R = r) \;=\; \hat{A} \,r^{\,-\,\widehat{\theta}}$, for all $\widehat{\theta} > 0$. 
+
+There $X$ represents the random variable corresponding to the frequency of occurrences, $\hat{B}$ is a proportionality constant, $\hat{A}$ is the normalising constant defined by:
+
+$$\hat{A} \,:=\, \frac{\hat{B}\; \hat{\delta}^{\,\hat{\alpha}}}{\hat{C}}, \quad \text{such that} \quad \sum\limits_{r}\hat{A}\, r^{\,-\,\widehat{\theta}} \;=\; 1$$
+and $\hat{\delta}$ (real number) and $\hat{\beta}<0$ are estimates such that  $x(r) \,=\, \hat{\delta} r^{\,\hat{\beta}}$,  and $\widehat{\theta} := -\,\hat{\alpha} \hat{\beta} > 0$ is the power law exponent for the rank $R$.
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+**Proof Theorem 3.2.1.**
+Given that $x(r) \geq x(r+1)$ for all $r \geq 1$, and assuming $x(r)$ follows a power-law distribution, we have $x(r) = \hat{\delta} r^{\hat{\beta}}$, where $\hat{\delta} > 0$ is a constant of proportionality and $\hat{\beta} < 0$ is the power law exponent. To estimate the distribution of the rank $R$, we start with the relationship between the probabilities $\hat{P}(R = r)$ and $\hat{P}(X = x(r))$. Since these probabilities are inversely proportional, we have:
+$$\hat{P}(R = r) \;= \; \frac{\hat{B}}{\hat{P}(X = x(r))},$$
+where $\hat{B}$ is a proportionality constant. This result demonstrates the part (a). Substituting $x(r) = \hat{\delta} r^{\hat{\beta}}$ into the probability $\hat{P}(X = x(r))$, and using the normalization constant $\hat{C}$ to ensure the probabilities sum to 1, we get:
+$$\hat{P}(R = r) \;=\; \frac{\hat{B}}{\hat{P}(X = \hat{\delta} \,r^{\,\hat{\beta}})} \;=\; \frac{\hat{B}}{\hat{C}} \, \left(\hat{\delta} \, r^{\, \hat{\beta}}\right)^{\,\hat{\alpha}} \;=\; \frac{\hat{B} \,\hat{\delta}^{\,\hat{\alpha}}}{\hat{C}} \left(r^{\,\hat{\alpha} \, \hat{\beta}}\right),$$
+
+where $\hat{\alpha}$ is the power law exponent for the occurrence frequency $X$. Defining the estimation $\widehat{\theta} := -\hat{\alpha} \hat{\beta} > 0$, we get $\hat{P}(R = r) \,=\, \hat{A} r^{\,-\,\widehat{\theta}}$, where $\hat{A}$ is the normalizing constant defined as indicated by the statement of the theorem. Thus, we have shown that the probability $\hat{P}(R = r)$ of a factor $V_i$ being at rank $r$ follows the power-law distribution with exponent $\widehat{\theta}>0$. This result demonstrates the part (b).  $\blacksquare$
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+We now present a theorem that characterizes the properties of the rank distribution for a variable $V$ composed of several factors $V_i$. This theorem provides conditions under which the mean, variance, moments, and cumulative distribution function (CDF) of the rank distribution exist and are well-defined.
+
+**Theorem 3.2.2.** Let $V$ be a variable composed of several factors $V_i$, where $i = 1, 2, \ldots, n$, each with descending ordered frequencies of occurrence $x(r)$ at rank $r$ (the rank of the factor within $V$). That is, $x(r) \geq x(r+1)$ for all $r \geq 1$.  Suppose that $V$ follows a power-law distribution with an estimated scale parameter $\hat{\alpha}$, threshold $\widehat{x}_{\text{min}}$, and normalization constant $\hat{C}$, ensuring that the probabilities sum to 1 for $V$. Then, for all ranks $r$ such that $x(r) \geq \widehat{x}_{\text{min}}$, the following properties hold for the rank distribution:
+
+(a) For all $\widehat{\theta}>2$, the mean of the rank distribution $R$ exists. It is given by $\mathbb{E}[R] \,=\, \hat{A} \, \zeta(\widehat{\theta} - 1)$, where $\zeta(s)$ is the Riemann zeta function, defined by
+
+$$\zeta(a) \;=\; \sum_{r=1}^{\infty} \,r^{\,-a}, \quad a>1$$
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+(b) For all $\widehat{\theta}>3$, the variance of the rank distribution $R$ exists. It is given by 
+$$\text{Var}(R)\;=\; \hat{A} \, \left[\zeta(\widehat{\theta} - 2)\; - \;\zeta^2(\widehat{\theta} - 1)\right]$$
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+(c) For all $\widehat{\theta}>k+1$, the $k$-th moment of the rank distribution $R$ exists. It is given by $\mathbb{E}[R^k] \,=\, \hat{A} \, \zeta(\widehat{\theta} - k)$. 
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+(d)  For all $\widehat{\theta}>1$, the cumulative distribution function (CDF) of the rank $R$ is given by 
+$$F(t) \;=\; \hat{A} \, \left[\zeta(\widehat{\theta})\; - \;\zeta_H(\widehat{\theta}, t+1)\right], \quad \text{for all}\quad t\geq 0 $$
+where the Hurwitz zeta function, denoted by $\zeta_H(a,q)$ is defined for $a > 1$ and $q > 0$ by the infinite series
+
+$$\zeta_H(a,q) \;= \;\sum_{r=0}^{\infty} \,(r\;+\; q)^{\,-a}$$
+
+**Note.** The Hurwitz zeta function is a generalization of the Riemann zeta function, as when 
+$q=1$, it simplifies to $\zeta_H(a,1)=\zeta(a)$.
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+**Proof Theorem 3.2.2.**
+
+(a) The mean of the rank distribution $R$ is given by
+$$\mathbb{E}[R] \;= \;\sum_{r=1}^{\infty} r \, \hat{P}(R = r) \;=\; \sum_{r=1}^{\infty} r \, \hat{A} \, r^{\,- \widehat{\theta}} \;= \;\hat{A} \sum_{r=1}^{\infty} r^{\,1 \,- \,\widehat{\theta}} $$
+
+For the above series to converge, we require that $1 - \widehat{\theta} < -1$. Thus, $\widehat{\theta} > 2$. Therefore, the mean $\mathbb{E}[R]$ is finite if and only if $\widehat{\theta} > 2$. Using the definition of the Riemann zeta function, we find the formula given in (a).
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+(b) The variance of the rank distribution $R$ is given by
+
+$$\mathbb{E}[R^2] = \sum_{r} r^{\,2} \, \hat{P}(R = r) = \sum_{r=1}^{\infty} r^{\,2} \, \hat{A} \, r^{\,- \widehat{\theta}} = \hat{A} \sum_{r=1}^{\infty} r^{\,2 \,-\, \widehat{\theta}}.$$
+
+The above series converges if and only if $2 - \widehat{\theta} < -1$. Therefore, the series converges if and only if $\widehat{\theta} > 3$.  Using the definition of the Riemann zeta function, we have that $\mathbb{E}[R^2]= \zeta(\widehat{\theta} - 2)$. Using the result found in (a) and the property   $\text{Var}(R) = \mathbb{E}[R^2] - (\mathbb{E}[R])^2$,  we derive the formula given in (b).
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+(c) The $k$-th moment of the rank distribution $R$ is given by
+
+$$\mathbb{E}[R^k] = \sum_{r=1}^{\infty} r^{\,k} \, \hat{P}(R = r) 
+                = \sum_{r=1}^{\infty} r^{\,k} \, \hat{A} \, r^{\,- \widehat{\theta}} 
+                = \hat{A} \sum_{r=1}^{\infty} r^{\,k \,- \,\widehat{\theta}}$$
+
+For the above series to converge, we require that $k - \widehat{\theta} < -1$. Thus, $\widehat{\theta} > k+1$. Therefore, the $k$-th moment $\mathbb{E}[R^k]$ is finite if and only if $\widehat{\theta} > k+1$. Using the definition of the Riemann zeta function, we find the formula given in (c).
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+(d) The cumulative distribution function (CDF) of the rank $R$ is given by
+
+$$F(t)\; = \;P(R \leq t) \; = \;\sum_{r=1}^{t} \hat{P}(R = r)\; = \;\hat{A} \,\sum_{r=1}^{t} r^{\,- \widehat{\theta}} \;=\; \hat{A} \,\left[\sum_{r=1}^{\infty} r^{\,- \widehat{\theta}} \;-\; \sum_{r=t+1}^{\infty} r^{\,- \widehat{\theta}}\right] \; =\; \hat{A} \,\left[\sum_{r=1}^{\infty} r^{\,- \widehat{\theta}} \;-\; \sum_{r=0}^{\infty} [r+(t+1)]^{\,- \widehat{\theta}}\right] $$
+The first sum converges for all $\widehat{\theta} > 1$ and is calculated with  Riemann zeta function $\zeta(\widehat{\theta})$. The  second sum converges for $\widehat{\theta} > 1$ and $t \geq 0$ (since $q:=t+1>0$ and $r \geq 1$ in the rank notation), and is calculated using the Hurwitz zeta function $\zeta_H(\widehat{\theta}, t+1)$. Therefore, $F(t)$ converges for all $\widehat{\theta} > 1$. In summary, replacing both zeta functions, we obtain the formula in (d). $\blacksquare$
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+## 3.3. The Relative Importance Factor (RIF) Index 
+
+As mentioned in the introduction, previous studies have focused on modeling the power-law distribution based solely on frequencies, without estimating the distribution of the rank. In the previous section, we addressed this gap by presenting and demonstrating a formula to model the rank distribution of the most frequent factors. Now, we introduce a parameter known as the Relative Importance Factor (RIF) index, which will serve to compare the relative importance of factors across different ranks.
+
+**Definition 3.3.1.** For all ranks $s \leq r$ such that $x(r) \geq x(s) \geq \widehat{x}_{\text{min}}$, the estimated Relative Importance Factor (RIF) Index of a factor $V_s$ in rank $s$ with respect to another factor $V_r$ in rank $r$, denoted as $\widehat{\Phi}(s,r)$, is defined as:
+
+$$\widehat{\Phi}(s,r) \;:= \; \frac{\hat{P}(R = s)}{\hat{P}(R = r)} \;= \;  \left(\frac{r}{s}\right)^{\widehat{\theta}}, \quad \widehat{\theta} > 0$$
+
+where $\hat{P}(R = s)$ is the estimated probability of the factor occupying rank $s$, and $\hat{P}(R = r)$ is the estimated probability of the factor occupying rank $r$. When $s = 1$, we simply write $\widehat{\Phi}(r) := \widehat{\Phi}(1, r)$ and refer to it as the RIF index with respect to factor $V_r$. 
+
+ 
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+This estimate will help us explain how the probability of observing an element at rank $s$ compares to the probability of observing the element at rank $r$. We know that $\hat{P}(R = 1) = \hat{A}$. Then, in particular, $\widehat{\Phi}(r) = r^{\widehat{\theta}}$. When $r=1$, then $\widehat{\Phi}(1) = 1$, which is trivially 1, since we are comparing the probability of the first rank with itself. Suppose that $r > 1$. Then, the probability of observing the first element in the rank is $r^{\widehat{\theta}}$ times higher than the probability of observing the element in rank $r$. In general,
+
+$$ \hat{P}(R = s) = \left(\frac{r}{s}\right)^{\widehat{\theta}}\, \hat{P}(R = r) $$
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+For different values of $\widehat{\theta}$, Figure 1(a) and Figure 1(b) show how the rank $r$ relates to both the RIF index and the probability $\hat{P}(R = r)$. Given that $\theta$ is positive, the graph illustrates how the RIF index and the probability change as both $r$ and $\theta$ are increased.
+
+
+**OJO. FALTAN LAS FIGURAS. **
+Figure 1. Distribution of: (a) RIF Index and (b) Probability vs Rank, for different values of $\widehat{\theta}$; RIF Index vs (c) $\widehat{P}(R=r)$; (d) $\widehat{P}(R=1)$.
+
+
+Each line, color-coded according to the legend, represents the distribution for a particular value of $\theta$. The dark line shows a steep increase (decrease) in RIF index (probability) with higher ranks, indicating rapid growth (decline), while other lines exhibit more gradual or stable trends in the odds. This suggests significant variability in how RIF index (probability) changes with rank across different values of $\theta$, highlighting the unique impact of rank on RIF index (probability) for each type. As $r$ increases and $\theta$ becomes more positive, the RIF index increase (the probability decreases) exponentially. The higher the value of $\theta$, the steeper the increase (decrease) in the RIF index (probability) with respect to $r$. This indicates that for larger values of $\theta$, the disparity between the probability of the highest-ranked event and lower-ranked events becomes much more pronounced. As $r$ increases, the RIF index diverge significantly and the probability converges to 0, especially for higher $\theta$ values, highlighting an exponential growth pattern. Figure 1(c) explores the relationship between the probability $\hat{P}(R = r)$ and the RIF index for different values of $\hat{P}(R = 1)$. As $\hat{P}(R = r)$ increases, the RIF index decrease sharply initially and then level off. The gradient color represents different values of $\hat{P}(R = 1)$, indicating that higher values of $\hat{P}(R = 1)$ correspond to higher RIF index for a given $\hat{P}(R = r)$. Figure 1(d) examines the relationship between the probability $\hat{P}(R = 1)$ and the RIF index for different values of $\hat{P}(R = r)$. As $\hat{P}(R = 1)$ increases, the RIF index increase linearly. The gradient color represents different values of $\hat{P}(R = r)$, showing that higher values of $\hat{P}(R = r)$ lead to higher RIF index for a given $\hat{P}(R = 1)$.
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+## 3.5 Domain and Ranges of the RIF index
+
+The domain of $\widehat{\Phi}(s,r)$ is the set of all positive integer $s \leq r$ such that $x(r) \geq x(s) \geq \widehat{x}_{\text{min}}$. The range of $\widehat{\Phi}(s,r)$ is $[1, \infty)$. Since Since $\hat{P}(R = s) \geq \hat{P}(R = r)$ for any $s \leq r$, the value of $\widehat{\Phi}(s,r)$ will always be 1 or greater. The range of values that the RIF index can take allows for several interpretations regarding the importance of factors:
+
+   +  **Near 1:** When $\widehat{\Phi}(s,r) \approx 1$, it indicates that the probability of the factor being at rank $r$ is nearly the same as being at rank $s$. This suggests factors with relatively stable importance.
+   
+   +  **High Values:** When $\widehat{\Phi}(s,r) \gg 1$, it indicates that the factor is much more likely to be at rank $s$ than at rank $r$. This suggests a sharp decline in importance as the rank increases.
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+To provide clear and impactful terminology for discussing the importance levels of different factors within our analysis, we propose the following names for the ranges of $\widehat{\Phi}(s,r)$, shown in the following definition. 
+
+**Definition 3.5.1.** Let $\widehat{\Phi}(s,r)$ be the estimated RIF index of a factor $V_s$ in rank $s$ with respect to another factor $V_r$ in rank $r$. The $V_s$ receives the name (with respect to $V_r$) indicated below when the RIF meets the following conditions:
+
+**ARE SUGGESTED RANKS AND NAMES. ONLY ONE MUST BE CHOSEN. AS A PREFERENCE, I WILL STICK WITH THE FIRST NAMES. **
+
+1. **$\widehat{\Phi}(s,r) \approx 1$** (Factor *Balanced*, *in equilibrium*, or *Stable*): Indicates that the factor's importance is nearly the same across different ranks. This suggests a stable distribution of importance and reflects minimal change in importance as the rank changes.
+
+2. **$1 < \widehat{\Phi}(s,r) \leq 2$** (Factor *Moderate*, *Intermediate*, or *Notable*): The factor has a slightly higher importance at rank $s$ compared to a rank $r\geq s$. The difference in importance is noticeable but not extreme, representing a moderate decline in importance with increasing rank.
+
+3. **$2 < \widehat{\Phi}(s,r) \leq 5$** (Factor *Significant*, *Elevated*, or *Enhanced*): The factor is significantly more important at rank $s$ than at higher ranks $r\geq s$. There is a clear elevation in importance at rank $s$, indicating an enhanced level of importance at the rank $s$.
+
+4. **$5 < \widehat{\Phi}(s,r) \leq 10$** (Factor *Critical*, *Major*, or *High*): The factor's importance at rank $s$ is majorly higher than at other ranks $r\geq s$. This reflects a critical difference in importance between the rank $s$ and others $r\geq s$, with a steep decline as rank increases.
+
+5. **$\widehat{\Phi}(s,r) > 10$** (Factor *Dominant*, *Supreme*, or *Peak*): The factor is overwhelmingly more important at rank $s$ than at any other rank $r\geq s$. This represents a supreme level of importance at the top rank, with the importance peaking at rank $s$ and dropping sharply at higher ranks $r\geq s$.
+
+These categories can be used to effectively communicate the significance of our findings in terms of the relative importance of factor $V_s$ compared with various factors $V_r$, for $r\geq s$.
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+## 3.7 Values of $\theta$ for each range of $\widehat{\Phi}(s,r)$
+
+The value of $\widehat{\theta}$ will affect the values of $\widehat{\Phi}(s,r)$, for all $r\geq s$ such that $x(r) \geq x(s) \geq \widehat{x}_{\text{min}}$, as shown in the following theorem. 
+
+
+
+**Theorem 3.7.1.** Let $\widehat{\Phi}(s,r)$ be the estimated RIF index of the first factor $V_s$ in rank $s$ with respect to another factor $V_r$ in rank $r$, where $r \geq s$ and $x(r) \geq x(s) \geq \widehat{x}_{\text{min}}$. Let $\widehat{\theta}$ be defined as in previous sections. Then, for a fixed ratio $p := r/s$ and given estimations $\widehat{\theta}_i$ of $\widehat{\theta}$, $i=1$, $2$, such that $0 \leq \widehat{\theta}_1 \leq \widehat{\theta}_2$, the following holds: 
+
+
+$$\widehat{\theta}_1 < \widehat{\theta} < \widehat{\theta}_2 \qquad \text{if and only if} \qquad\widehat{\Phi}_1 \leq \widehat{\Phi}(s,r) \leq \widehat{\Phi}_2    $$
+where $\widehat{\Phi}_i := \widehat{\Phi}_i(s,r) = \left(p\right)^{\widehat{\theta}_i}$. Observe that $\widehat{\theta}_i = \frac{\ln\big(\widehat{\Phi}_i\big)}{\ln\big(p\big)}$.
+
+**Proof Theorem 3.7.1.** This proof involves showing that the given bounds on $\widehat{\Phi}(S,r)$ translate directly to bounds on $\widehat{\theta}(r)$ through the functional relationship defined between them. Since $\widehat{\Phi}(s,r) = p^{\widehat{\theta}}$, taking the natural logarithm on both sides yields $\ln(\widehat{\Phi}(s,r)) = \widehat{\theta} \ln(p)$. Therefore, it is straightforward to see that the inequalities on $\widehat{\theta}$ correspond to inequalities on $\widehat{\Phi}(s,r)$.$\blacksquare$
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+## 3.8. Theta values for PHi ranges
+
+### 3.8.1 R functions for examples
+
+**Calculate Theta for given Phi and one single fixed r**
+
+```{r}
+# Define the function to calculate theta values
+calculate_theta <- function(r, phi_values) {
+  results <- data.frame()
+  # Calculate theta for each value in phi_values
+  theta_values <- log(phi_values) / log(r)
+  temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+  results <- rbind(results, temp_df)
+  return(results)
+}
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+**Calculate Theta for given Phi and multiple fixed r**
+
+
+```{r}
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+**Calculate Min-Max Theta for given Phi and multiple fixed r**
+
+
+```{r}
+calculate_theta_minmax_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    min_theta <- min(theta_values)
+    max_theta <- max(theta_values)
+    temp_df <- data.frame(r = r, Min_Theta = min_theta, Max_Theta = max_theta)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### 3.8.2 Numerical Examples: given Phi and one single fixed r
+
+
+```{r}
+# Example usage
+r_values <- 5  # Fixed value of r
+#phi_values <- c(1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 10, 15.5, 20)  # List of Phi values (including decimals)
+phi_values <- seq(1, 2, by = 0.2)
+
+# Calculate theta values for the given Phi values and fixed r
+theta_values <- calculate_theta(r_values, phi_values)
+theta_values
+
+# Display the results
+#data.frame(Phi = phi_values, Theta = theta_values)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### 3.8.2 Numerical Examples: given Phi and multiple fixed r
+
+
+```{r}
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1.01, 2, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Display the results
+head(results)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### 3.8.2 Min-Max Theta: $1 < \widehat{\Phi}(s,r) \leq 2$
+
+
+```{r}
+library(knitr)
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(2.01, 5, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_minmax_multiple_r(r_values, phi_values)
+
+# Display the results
+kable(results)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### 3.8.2 Min-Max Theta: $2 < \widehat{\Phi}(s,r) \leq 5$
+
+
+```{r}
+library(knitr)
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(5.01, 10, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_minmax_multiple_r(r_values, phi_values)
+
+# Display the results
+kable(results)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### 3.8.2 Min-Max Theta: $5 < \widehat{\Phi}(s,r) \leq 10$
+
+
+```{r}
+library(knitr)
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(10.01, 20, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_minmax_multiple_r(r_values, phi_values)
+
+# Display the results
+kable(results)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### 3.8.2 Min-Max Theta: $\widehat{\Phi}(s,r) > 10$
+
+
+```{r}
+library(knitr)
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1.01, 2, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_minmax_multiple_r(r_values, phi_values)
+
+# Display the results
+kable(results)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Estimated Ranges of $\widehat{\theta}$ for Different Ranks Based on $\widehat{\Phi}(r) = r^{\widehat{\theta}}$
+
+Table 1. Estimated Ranges of $\widehat{\theta}$ for Different Ranks Based on $\widehat{\Phi}(r) = r^{\widehat{\theta}}$
+
+**OJO OJO FALTA LA TABLA**
+
+The table below presents the estimated minimum and maximum values of $\widehat{\theta}$ for different fixed ranks $r$ across various ranges of $\widehat{\Phi}(r)$. This estimation is based on the formula $\widehat{\Phi}(r) = r^{\widehat{\theta}}$, which provides insights into how the parameter $\widehat{\theta}$ varies with different values of $r$ and $\widehat{\Phi}(r)$. For the range $1 < \widehat{\Phi}(r) \leq 2$, $\widehat{\theta}$ spans from 1.007 to 2.322 for $r=2$, from 0.635 to 1.465 for $r=3$, and continues to decrease as $r$ increases, indicating a lower bound near 0.303 for $r=10$. In the range $2 < \widehat{\Phi}(r) \leq 5$, $\widehat{\theta}$ values are higher, with estimates ranging from 2.325 to 3.322 for $r=2$ and from 0.700 to 1.000 for $r=10$. For $5 < \widehat{\Phi}(r) \leq 10$, $\widehat{\theta}$ further increases, with values ranging from 3.323 to 4.322 for $r=2$ and 1.000 to 1.301 for $r=10$. Finally, for $\widehat{\Phi}(r) > 10$, $\widehat{\theta}$ is highest for the lower ranks and decreases significantly for higher ranks, starting from 0.014 to 1.000 for $r=2$ and 0.004 to 0.301 for $r=10$. This analysis demonstrates the variability of $\widehat{\theta}$ and highlights the differences in the Relative Importance Factor index across different ranks and ranges of $\widehat{\Phi}(r)$.
+
+
+\section*{Estimated Ranges of $\widehat{\theta}$ for Different Ranks Based on $\widehat{\Phi}(r) = r^{\widehat{\theta}}$}
+
+The table below presents the estimated minimum and maximum values of $\widehat{\theta}$ for different fixed ranks $r$ across various ranges of $\widehat{\Phi}(r)$. This estimation is based on the formula $\widehat{\Phi}(r) = r^{\widehat{\theta}}$, which provides insights into how the parameter $\widehat{\theta}$ varies with different values of $r$ and $\widehat{\Phi}(r)$. For the range $1 < \widehat{\Phi}(r) \leq 2$, $\widehat{\theta}$ spans from 1.007 to 2.322 for $r=2$, from 0.635 to 1.465 for $r=3$, and continues to decrease as $r$ increases, indicating a lower bound near 0.303 for $r=10$. In the range $2 < \widehat{\Phi}(r) \leq 5$, $\widehat{\theta}$ values are higher, with estimates ranging from 2.325 to 3.322 for $r=2$ and from 0.700 to 1.000 for $r=10$. For $5 < \widehat{\Phi}(r) \leq 10$, $\widehat{\theta}$ further increases, with values ranging from 3.323 to 4.322 for $r=2$ and 1.000 to 1.301 for $r=10$. Finally, for $\widehat{\Phi}(r) > 10$, $\widehat{\theta}$ is highest for the lower ranks and decreases significantly for higher ranks, starting from 0.014 to 1.000 for $r=2$ and 0.004 to 0.301 for $r=10$. This analysis demonstrates the variability of $\widehat{\theta}$ and highlights the differences in the Relative Importance Factor index across different ranks and ranges of $\widehat{\Phi}(r)$. This behavior can be clearly visualized in Figure a (presented below).
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# 4	Application to Scopus database
+
+
+The proposed theory is applied using databases downloaded from Scopus in the area of social resilience. Specifically, we focus on the number of citations of articles published in this area. This approach enables us to identify citation distribution patterns and evaluate how academic attention is concentrated on certain articles and specific topics based on the Relative Importance Factor (RIF) index.
+
+## 4.1 Data Collection and Preparation
+
+The data for this study were collected from the Scopus database, encompassing a comprehensive set of articles published on social resilience. The dataset includes information on article titles, authors, publication years, journal names, and the number of citations each article received. The initial dataset underwent a thorough cleaning process to remove any missing, duplicated, or inconsistent data, ensuring the accuracy and reliability of the subsequent analysis.
+
+## 4.2 Exploratory Data Analysis
+
+We began with an exploratory data analysis (EDA) to understand the general patterns and characteristics of the citation data. Descriptive statistics such as mean, median, standard deviation, and interquartile range of the citation counts were computed. Additionally, we visualized the distribution of citations to identify any potential outliers and to get a sense of the overall citation distribution.
+
+## 4.3 Topic Modeling with Python
+
+To uncover the underlying topics within the articles, we applied topic modeling to the abstracts of the downloaded papers. This process was conducted using Python, specifically employing the Latent Dirichlet Allocation (LDA) algorithm. The steps involved in this process are as follows:
+
+1. Preprocessing the Text: The abstracts were preprocessed to remove stop words, punctuation, and to perform stemming and lemmatization, ensuring that the text data was clean and suitable for analysis.
+
+2. Vectorization: The cleaned text data was then vectorized using techniques such as TF-IDF (Term Frequency-Inverse Document Frequency) to convert the text into a numerical format that could be used for topic modeling.
+
+3. Applying LDA: The LDA algorithm was applied to the vectorized text data to identify the underlying topics. This involved specifying the number of topics to be extracted and iterating through the algorithm to refine the topic distribution.
+
+4. Interpreting the Topics: The resulting topics were interpreted by examining the most prominent words in each topic. This allowed us to label the topics and understand the main themes present in the abstracts of the papers.
+
+
+## 4.4 Application of the Power-Law Distribution
+
+Assuming that the citation counts follow a power-law distribution, we estimated the parameters of this distribution, including the scale parameter $\hat{\alpha}$ and the threshold $\widehat{x}_{\text{min}}$. The normalization constant $\hat{C}$ was also determined to ensure that the probabilities sum to one. Using these parameters, we calculated the estimated probability $\hat{P}(R = r)$ that a factor $V_i$ occupies rank $r$ within the dataset.
+
+
+
+4.5 Relative Importance Factor (RIF) Index Calculation
+
+Next, we computed the RIF index for each article to evaluate their relative importance within the citation distribution. The RIF index compares the probability of an article occupying a given rank with the probability of it being in any higher rank, providing a nuanced understanding of the prominence of each article. Articles with higher RIF index values were identified as significantly more influential within the field of social resilience.
+
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+# Conclusions and Discussions
+
+**CONCLUSIONS AND DISCUSSIONS ON THE APPLIED CASE WITH SCOPUS PAPERS ARE LACKING.BELOW THERE IS AN IDEA**
+
+
+This study has introduced a comprehensive methodology for estimating the rank distribution of the most frequent factors within a variable $V$ composed of several factors $V_i$, ordered by descending frequencies $x(r)$. By assuming that $V$ follows a power-law distribution, we derived a formula for the estimated probability $\hat{P}(R=r)$ of a factor $V_i$ occupying rank $r$. Our findings reveal that this probability can be expressed using a proportionality constant $\hat{B}$, a normalization constant $\hat{A}$, and the power-law exponent $\hat{\theta}$. This approach effectively addresses a significant gap in the literature where prior studies have primarily focused on frequency distributions without considering rank estimation.
+
+The introduction of the Relative Importance Factor (RIF) index allows for a deeper evaluation of the prominence and significance of factors. The RIF index compares the probability of a factor occupying a specific rank to the probability of it being in any higher rank. This innovative parameter offers a fresh perspective for analyzing complex systems and provides valuable insights into the dynamics of factor importance across different ranks. Future research could build on these findings by applying the RIF index to various fields, conducting longitudinal analyses, and integrating it with other statistical models. Additionally, the potential applications of the RIF index in different geographical regions and its policy implications present promising avenues for further investigation.
+
+Theorem 3.2.2 outlines the conditions under which the mean, variance, moments, and cumulative distribution function (CDF) of the rank distribution exist and are well-defined. Specifically, the mean exists if $\widehat{\theta}$ is greater than 2, while the variance requires $\widehat{\theta}$ to exceed 3. Additionally, the $k$-th moment exists if $\widehat{\theta}$ is greater than $k + 1$, and the CDF is well-defined for $\widehat{\theta} > 1$. These results provide a robust framework for understanding the statistical properties of rank distributions in power-law models.
+
+The results illustrated in Figure 1 offer a detailed understanding of how the RIF index and probabilities change with rank and the power-law exponent $\hat{\theta}$. Figure 1(a) shows the distribution of the RIF index across different ranks for various $\hat{\theta}$ values. It is evident that as both the rank and $\hat{\theta}$ increase, the RIF index rises significantly, indicating a higher relative importance of factors at higher ranks. This underscores the sensitivity of the RIF index to changes in rank and the power-law exponent, emphasizing the necessity of accurately estimating $\hat{\theta}$ for reliable assessments of factor prominence. Figure 1(b) demonstrates the inverse relationship between rank and probability, with higher $\hat{\theta}$ values leading to a steeper decline in probability as rank increases. Figures 1(c) and 1(d) illustrate how the RIF index varies with the estimated probabilities $\hat{P}(R=r)$ and $\hat{P}(R=1)$, respectively. The observed patterns align with theoretical expectations, confirming that the RIF index effectively captures the relative importance of factors within a ranked distribution. This analysis offers valuable insights into the dynamics of factor prominence, providing a robust framework for future research across various fields, including social resilience, economics, and network analysis.
+
+Theorem 3.7.1 provides a crucial theoretical foundation for understanding how the RIF index can be used to compare the relative importance of factors across different ranks. By establishing a relationship between the power-law exponent $\widehat{\theta}$ and the RIF index, this theorem allows us to delineate conditions under which the importance of one factor relative to another can be quantified. This advancement is significant because it moves beyond merely modeling frequencies and delves into the dynamics of rank distributions, offering a more nuanced perspective on factor prominence. The theorem's result, which relates the RIF index to the power-law exponent $\widehat{\theta}$, ensures that this comparison is both meaningful and mathematically sound. The introduction of fixed ratios $p = r/s$ and the bounds on $\widehat{\theta}$ further enhance the robustness of this comparison. These theoretical insights are not only valuable for academic research but also have practical implications in fields such as social resilience, economics, and network analysis. Future work can build on these findings by applying the RIF index to empirical data, exploring its applicability in various contexts, and refining the theoretical framework to accommodate more complex distributions and interactions.
+
+The analysis presented in this paper extends the traditional understanding of power-law distributions by focusing not only on frequencies but also on the distribution of ranks. The provided table and accompanying figure illustrate the relationship between the RIF index and the power-law exponent $\widehat{\theta}$ for various ranks. Specifically, the table delineates the range of $\widehat{\theta}$ values for different categories of $\widehat{\Phi}(r)$, offering a clear visualization of how the importance of factors changes with rank. The figure further elucidates this relationship, showing that as $\widehat{\theta}$ increases, the RIF index rises more steeply, indicating a sharper decline in importance as rank increases. This behavior is particularly pronounced in the "Dominant" category, where the RIF index exceeds 10.
+
+The implications of these findings are multifaceted. Firstly, they provide a robust mathematical framework for evaluating the relative importance of factors across different ranks. Secondly, the ability to categorize factors based on their $\hat{\theta}$ values offers practical insights for fields such as social resilience, economics, and network analysis. For instance, in social resilience studies, understanding the prominence of specific factors can help policymakers prioritize interventions. Future research could explore the application of the RIF index in other domains, refine the theoretical model to accommodate more complex interactions, and validate the findings with empirical data. The clear categorization of factors into "Moderate," "Significant," "Critical," and "Dominant" based on their $\hat{\theta}$ values provides a nuanced tool for analyzing factor importance, enhancing both theoretical and practical understanding.
+
+The analysis, carried out using the Scopus database, revealed several key findings:
+
+1. Citation Distribution Patterns: The citation distribution exhibited a heavy-tailed pattern, consistent with the power-law behavior, indicating that a small number of articles received a disproportionately high number of citations, while the majority received relatively few.
+
+2. RIF Index Insights: The RIF index highlighted the most prominent articles, which tended to be those that addressed critical aspects of social resilience, such as power relations, rules/institutions, and resource distribution. These findings align with the observations by Dagdeviren et al. (2020) on the interconnected nature of these elements in determining social resilience.
+
+ 3. Topic Modeling Results: The topic modeling process uncovered several key themes within the abstracts, including community resilience, disaster response, and policy interventions. These topics reflect the diverse aspects of social resilience and provide a deeper understanding of the focus areas within this field.
+ 
+4. Policy Implications: The results suggest that academic attention is highly concentrated on a few pivotal topics within social resilience, which can inform public policy formulation and the implementation of resilient practices in communities and organizations. Policymakers can leverage these insights to prioritize areas that are critical for enhancing social resilience.
+
+In summary, applying the proposed theory to the Scopus dataset on social resilience has provided valuable insights into the distribution of academic attention in this field. The use of the RIF index has enabled a detailed evaluation of the relative importance of articles, contributing to a deeper understanding of the dynamics of academic influence. The topic modeling process further enriched our analysis by identifying key themes within the abstracts, offering a comprehensive view of the research landscape. This approach not only fills a significant gap in the literature but also offers a robust framework for future research and practical applications in policy and decision-making contexts.
+
+This work has addressed a notable gap in the literature by introducing both a formula to model the rank distribution of frequently occurring factors (an area previously overlooked in power-law distribution studies) and the Relative Importance Factor (RIF) index. The practical implications of this framework are significant. For instance, in social resilience studies, understanding which factors are consistently important (Balanced) versus those that dominate only at top ranks (Dominant) can inform policy decisions and resource allocation. Additionally, this methodology can be applied to various fields, such as economics, network analysis, and risk management, where understanding the dynamics of factor importance is crucial. Future research can expand on this work by applying the RIF index to different datasets and exploring its potential in predictive modeling and decision-making processes. The versatility and robustness of the RIF index make it a valuable tool for analyzing complex systems and their underlying factors.
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+# FUTURE WORKS
+
+Based on the advancements and insights presented in this work, several avenues for future research can be pursued:
+
+1. Application of the RIF Index to Other Domains: While this study focuses on social resilience using citation databases, the RIF index can be applied to other fields such as economics, biology, and network science to evaluate the relative importance of different factors within those contexts.
+
+2. Longitudinal Studies: Conduct longitudinal studies to observe how the rank distribution and the RIF index evolve over time. This can provide insights into the dynamic changes in the prominence of factors across different periods.
+
+3. Comparison Across Different Geographical Regions: Extend the application of the RIF index to compare the relative importance of factors across different countries or regions. This can help identify regional differences and similarities in the distribution of factors.
+
+4. Integration with Other Statistical Models: Integrate the RIF index with other statistical and machine learning models to enhance predictive analysis and decision-making processes. For example, combining the RIF index with regression models or clustering algorithms.
+
+5. Exploration of Other Heavy-Tailed Distributions: Investigate the applicability of the RIF index in the context of other heavy-tailed distributions such as the log-normal and stretched exponential distributions. This can broaden the scope and utility of the RIF index in various theoretical and practical applications.
+
+6. Sensitivity Analysis: Perform sensitivity analysis to understand the robustness of the RIF index under different conditions and assumptions. This includes examining the impact of varying the threshold and scale parameters on the rank distribution and the RIF index.
+
+7. Policy Implications: Explore the policy implications of the findings by using the RIF index to inform strategies for resource allocation, risk management, and strategic planning in various sectors such as healthcare, education, and public administration.
+
+By pursuing these future research directions, the theoretical framework and practical applications of the RIF index can be further developed and refined, contributing to a deeper understanding of the distribution and importance of factors in complex systems.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

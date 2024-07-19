@@ -1,0 +1,3028 @@
+---
+title: "RIF Index"
+author: "Brian LLinas"
+date: "2024-06-20"
+output: 
+  word_document: default
+  html_document:
+          toc: true      # table of content true
+          toc_depth: 4   # upto three depths of headings (specified by #, ## and ###)
+          toc_float: true #Con true, toc sale al margen izquierdo de la página; de lo contrario, arriba
+          collapsed: false
+          smooth_scroll: false
+          number_sections: true   # if you want number sections at each table header
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Data
+
+
+```{r message=FALSE, warning=FALSE}
+library(readxl)
+Colombia_freq <- read_excel("Data_freq.xlsx", sheet="Colombia")
+Greece_freq <- read_excel("Data_freq.xlsx", sheet="Greek")
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Plot RIF vs r: `plot` function
+
+```{r}
+# Defines a sequence of values for r
+r_values <- seq(1, 30, by = 1)
+
+# Defines different values for theta (<0)
+theta_values <- seq(0.5, 2, by = 0.5)
+
+# Configuring the colour palette for the chart
+colors <- c("red", "blue", "green", "brown"#, "yellow"
+            )
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Color, no hat
+
+```{r}
+#Create a list to store the results
+RIF_list <- list()
+
+# Calculate the RIF Index for each value of theta
+for (theta in theta_values) {
+  RIF_list[[as.character(theta)]] <- (1 / r_values) ^ theta
+}
+
+# Create the plot
+plot(r_values, RIF_list[[1]], type = "b", col = colors[1], 
+     xlab = "Rank (r)", ylab = expression(Phi(r)), 
+     main = "RIF Index vs Rank (r) for different values of theta")
+for (i in 2:length(theta_values)) {
+  lines(r_values, RIF_list[[i]], type = "b", col = colors[i])
+}
+
+# Add a legend
+legend("topright", legend = paste("theta =", theta_values), col = colors, lty = 1, pch = 1)
+
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Color, with hat
+
+```{r}
+#Create a list to store the results
+RIF_list <- list()
+
+# Calculate the RIF Index for each value of theta
+for (theta in theta_values) {
+  RIF_list[[as.character(theta)]] <- (1 / r_values) ^ theta
+}
+
+# Create the plot
+plot(r_values, RIF_list[[1]], type = "b", col = colors[1], 
+     xlab = "Rank (r)", ylab = expression(widehat(Phi)(r)), 
+     main = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta))
+for (i in 2:length(theta_values)) {
+  lines(r_values, RIF_list[[i]], type = "b", col = colors[i])
+}
+
+# Add a legend
+legend("topright", legend = lapply(theta_values, function(theta) bquote(theta == .(theta))), col = colors, lty = 1, pch = 1)
+
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Plot RIF vs r:   `ggplot` with hat
+
+### Color, with hat
+
+```{r}
+# Defines a sequence of values for r
+a <- 1
+b <- 10
+r_values <- seq(a, b, by = 1)
+
+# Defines different values for theta (<0)
+theta_values <- seq(0.5, 3, by = 0.5)
+
+# Show discrete values of r
+my_breaks <- seq(a, b, by = 2)
+```
+
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta)))
+}
+
+# Create the plot with ggplot2
+p1 <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x ="Rank (r)",
+    y = expression(widehat(Phi)(r)),
+    title = expression("RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+  ) +
+  scale_color_discrete(name = expression(theta * ":")) +
+  theme_minimal()
+
+# Show the plot
+print(p1)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Blue gradient, with hat
+
+```{r}
+# Defines a sequence of values for r
+a <- 1
+b <- 10
+r_values <- seq(a, b, by = 1)
+
+# Defines different values for theta (<0)
+theta_values <- seq(0.5, 3, by = 0.5)
+
+# Show discrete values of r
+my_breaks <- seq(a, b, by = 2)
+```
+
+
+
+```{r}
+
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta)))
+}
+
+# Generate a palette of single-tone colours
+# We use a palette of blue that gets lighter and lighter
+color_pal <- colorRampPalette(c("lightblue","blue"))(length(theta_values))
+
+# Create the plot with ggplot2
+p2 <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line() +
+  geom_point() +
+  labs(
+    x ="Rank (r)",
+    y = expression(widehat(Phi)(r)),
+    title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+  ) +
+  scale_color_manual(values = color_pal, name = expression(theta * ":")) +
+  scale_x_continuous(breaks = my_breaks) + # Show discrete values of r
+  theme_minimal()
+
+# Show the plot
+print(p2)
+
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+# Plot RIF vs r: `ggplot` no hat
+
+
+### No load, color, with hat and label
+
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta)))
+}
+
+# Create the plot with ggplot2
+Plot1a_theta_r_RIF_color <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line(size=1) +
+  geom_point(size=1) +
+  labs(
+    x ="Rank (r)",
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+   y = expression(widehat(Phi)(r)),
+    title = expression("As r and "  * widehat(theta) * " increase, the RIF Index increases")
+  ) +
+  scale_x_continuous(breaks = my_breaks) + # Show discrete values of r
+  scale_color_discrete(name = expression(widehat(theta)*":")) +
+  #facet_wrap(. ~ expression(hat(RIF) * " vs " * " Rank (r)" * " for different values of " * theta)) +    
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8)
+  )
+
+# Show the plot
+print(Plot1a_theta_r_RIF_color)
+
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load png, color, text
+
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta)))
+}
+
+# Create the plot with ggplot2
+Plot1a_theta_r_RIF_color <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line(size = 1) +
+  geom_point(size = 1) +
+  labs(
+    x = "Rank (r)",
+    y = expression(widehat(Phi)(r)),
+    title = expression("As r and " * widehat(theta) * " increase, the RIF Index increases")
+  ) +
+  scale_x_continuous(breaks = my_breaks) + # Show discrete values of r
+  scale_color_discrete(name = expression(theta * ":")) +
+  theme_minimal() +
+   xlim(1, 11) +# Extend x-axis limit to 12
+theme(
+    plot.title = element_text(size = 12, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.1, y = RIF),
+    size = 3,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+)
+ 
+# Show the plot
+print(Plot1a_theta_r_RIF_color)
+```
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot1a_theta_r_RIF_color.png", plot = Plot1a_theta_r_RIF_color, width = 6, height = 4, dpi = 600)
+getwd()
+#dev.off()
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load svg, color, text
+
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta)))
+}
+
+# Create the plot with ggplot2
+Plot1a_SVG_theta_r_RIF_color <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line(size = 1) +
+  geom_point(size = 1) +
+  labs(
+    x = "Rank (r)",
+    y = expression(widehat(Phi)(r)),
+    title = expression("As r and " * widehat(theta) * " increase, the RIF Index increases")
+  ) +
+  scale_x_continuous(breaks = my_breaks) + # Show discrete values of r
+  scale_color_discrete(name = expression(theta * ":")) +
+  theme_minimal() +
+  xlim(c(1,11)) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.05, y = RIF),
+    size = 5,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+)
+# Show the plot
+print(Plot1a_SVG_theta_r_RIF_color)
+```
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot1a_SVG_theta_r_RIF_color.svg", plot = Plot1a_SVG_theta_r_RIF_color, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### No load, blue gradient, label
+
+
+```{r}
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = theta))
+}
+
+# Create the plot with ggplot2
+Plot1b_theta_r_RIF_grad_blue <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line(size=1) +
+  geom_point(size=1) +
+  labs(
+    x ="Rank (r)",
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+    y = expression(widehat(Phi)(r)),
+    title = expression("(a) As r and "  * widehat(theta) * " increase, the RIF Index increases")
+  ) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(theta * ":")) +
+  scale_x_continuous(breaks = my_breaks) + # Mostrar valores discretos de r
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 10, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 8)
+  )
+# Show the plot
+print(Plot1b_theta_r_RIF_grad_blue)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load png, blue gradient, text
+
+
+```{r message=FALSE, warning=FALSE}
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = theta))
+}
+
+# Create the plot with ggplot2
+Plot1b_theta_r_RIF_grad_blue <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line(size = 1) +
+  geom_point(size = 1) +
+  labs(
+    x = "Rank (r)",
+    y = expression(widehat(Phi)(r)),
+    title = expression("(a) As r and " * widehat(theta) * " increase, the RIF Index increases")
+  ) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(theta * ":")) +
+  scale_x_continuous(breaks = my_breaks) + # Mostrar valores discretos de r
+  theme_minimal() +
+  xlim(c(1,11)) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 14),
+    axis.title.y = element_text(size = 14),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.05, y = RIF),
+    size = 4,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+  ) 
+
+# Show the plot
+print(Plot1b_theta_r_RIF_grad_blue)
+
+```
+
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot1b_theta_r_RIF_grad_blue.png", plot = Plot1b_theta_r_RIF_grad_blue, width = 6, height = 4, dpi = 600)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load svg, blue gradient, text
+
+
+```{r message=FALSE, warning=FALSE}
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = theta))
+}
+
+# Create the plot with ggplot2
+Plot1b_SVG_theta_r_RIF_grad_blue <- ggplot(data, aes(x = r, y = RIF, color = theta, group = theta)) +
+  geom_line(size = 1) +
+  geom_point(size = 1) +
+  labs(
+    x = "Rank (r)",
+    y = expression(widehat(Phi)(r)),
+    title = expression("(a) As r and " * widehat(theta) * " increase, the RIF Index increases")
+  ) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(theta * ":")) +
+  scale_x_continuous(breaks = my_breaks) + # Mostrar valores discretos de r
+  theme_minimal() +
+  xlim(c(1,11)) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.05, y = RIF),
+    size = 5,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+  ) 
+
+# Show the plot
+print(Plot1b_SVG_theta_r_RIF_grad_blue)
+
+```
+
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot1b_SVG_theta_r_RIF_grad_blue.svg", plot = Plot1b_SVG_theta_r_RIF_grad_blue, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+# Plot Pr vs r:   `ggplot`
+
+
+### Load png, color, text
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  Prob1 <- 0.5
+  Prob_r <- Prob1 / RIF
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta), Prob=Prob_r))
+}
+
+# Create the plot with ggplot2
+Plot2a_theta_r_Pr_color <- ggplot(data, aes(x = r, y = Prob, color = theta, group = theta)) +
+  geom_line(size=1) +
+  geom_point(size=1) +
+  labs(
+    x ="Rank (r)",
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+     y = expression("Probability " * widehat(P)(R==r)),
+    title = expression("As r and "  * widehat(theta) * " increase, the probability decreases")
+  ) +
+  scale_x_continuous(breaks = my_breaks) + # Show discrete values of r
+  scale_color_discrete(name = expression(widehat(theta)*":")) +
+  #facet_wrap(. ~ expression(hat(RIF) * " vs " * " Rank (r)" * " for different values of " * theta)) +    
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 14, face = "bold"),
+    axis.title.x = element_text(size = 15),
+    axis.title.y = element_text(size = 15),
+    axis.text.x = element_text(size = 12),
+    axis.text.y = element_text(size = 12),
+    legend.title = element_text(size = 12),
+    legend.text = element_text(size = 10), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.1, y = Prob),
+    size = 3,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+)+
+  xlim(1, 11) # Extend x-axis limit to 11
+# Show the plot
+# Show the plot
+print(Plot2a_theta_r_Pr_color)
+
+```
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot2a_theta_r_Pr_color.png", plot = Plot2a_theta_r_Pr_color, width = 6, height = 4, dpi = 600)
+
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+
+### Load svg, color, text
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  Prob1 <- 0.5
+  Prob_r <- Prob1 / RIF
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = factor(theta), Prob=Prob_r))
+}
+
+# Create the plot with ggplot2
+Plot2a_SVG_theta_r_Pr_color <- ggplot(data, aes(x = r, y = Prob, color = theta, group = theta)) +
+  geom_line(size=1) +
+  geom_point(size=1) +
+  labs(
+    x ="Rank (r)",
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+     y = expression("Probability " * widehat(P)(R==r)),
+    title = expression("As r and "  * widehat(theta) * " increase, the probability decreases")
+  ) +
+  scale_x_continuous(breaks = my_breaks) + # Show discrete values of r
+  scale_color_discrete(name = expression(widehat(theta)*":")) +
+  #facet_wrap(. ~ expression(hat(RIF) * " vs " * " Rank (r)" * " for different values of " * theta)) +    
+  theme_minimal()+
+  xlim(c(1,11)) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.05, y = Prob),
+    size = 5,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+  ) 
+
+# Show the plot
+print(Plot2a_SVG_theta_r_Pr_color)
+
+```
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot2a_SVG_theta_r_Pr_color.svg", plot = Plot2a_SVG_theta_r_Pr_color, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load png, blue gradient, text
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  Prob1 <- 0.5
+  Prob_r <- Prob1 / RIF
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = theta, Prob=Prob_r))
+}
+
+# Create the plot with ggplot2
+Plot2b_theta_r_Pr_grad_blue <- ggplot(data, aes(x = r, y = Prob, color = theta, group = theta)) +
+  geom_line(size=1) +
+  geom_point(size=1) +
+  labs(
+    x ="Rank (r)",
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+     y = expression("Probability " * widehat(P)(R==r)),
+    title = expression("(b) As r and "  * widehat(theta) * " increase, the probability decreases")
+  ) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(theta * ":")) +
+  scale_x_continuous(breaks = my_breaks) + # Mostrar valores discretos de r
+  theme_minimal()+
+  xlim(c(1,11)) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.05, y = Prob),
+    size = 5,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+  ) 
+
+# Show the plot
+print(Plot2b_theta_r_Pr_grad_blue)
+
+```
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot2b_theta_r_Pr_grad_blue.png", plot = Plot2b_theta_r_Pr_grad_blue, width = 6, height = 4, dpi = 600)
+
+```
+
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load svg, blue gradient, text
+
+```{r message=FALSE, warning=FALSE}
+library(ggplot2)
+# Create a data frame to store the results
+data <- data.frame()
+for (theta in theta_values) {
+  RIF <- (r_values) ^ theta
+  Prob1 <- 0.5
+  Prob_r <- Prob1 / RIF
+  data <- rbind(data, data.frame(r = r_values, RIF = RIF, theta = theta, Prob=Prob_r))
+}
+
+# Create the plot with ggplot2
+Plot2b_SVG_theta_r_Pr_grad_blue <- ggplot(data, aes(x = r, y = Prob, color = theta, group = theta)) +
+  geom_line(size=1) +
+  geom_point(size=1) +
+  labs(
+    x ="Rank (r)",
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+    y = expression("Probability " * widehat(P)(R==r)),
+    title = expression("(b) As r and "  * widehat(theta) * " increase, the probability decreases")
+  ) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(theta * ":")) +
+  scale_x_continuous(breaks = my_breaks) + # Mostrar valores discretos de r
+  theme_minimal()+
+  xlim(c(1,11)) +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) +
+  geom_text(
+    data = subset(data, r == max(r)), 
+    aes(label = paste("θ =", theta), x = 10.05, y = Prob),
+    size = 5,
+    hjust = -0.1,
+    vjust = 0.5,
+    check_overlap = TRUE
+  ) 
+
+# Show the plot
+print(Plot2b_SVG_theta_r_Pr_grad_blue)
+
+```
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot2b_SVG_theta_r_Pr_grad_blue.svg", plot = Plot2b_SVG_theta_r_Pr_grad_blue, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Plot Pr vs RIF
+
+### Pr vs RIF png: P1 fijo, load
+
+
+```{r message=FALSE, warning=FALSE}
+Prob_r <- seq(0.0001, 0.5, 0.00005)
+Prob1 <- 0.6
+RIF <- Prob1 / Prob_r
+D <- data.frame(Prob_r,RIF)
+
+Plot3a_RIF_r_Pr_black <- ggplot(D, aes(y = RIF, x = Prob_r)) +
+geom_point( size=1, color="darkblue") +
+labs( fill= "",
+    x =expression("Probability " * widehat(P)(R==r)),
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+    y = expression(widehat(Phi)(r)),
+    title = expression("(c) " * widehat(P)(R==1)== 0.6 * " fixed: As the probability decreases, the RIF Index increases")
+  ) +
+  ylim(0, 50)+
+theme_minimal()+
+  theme(
+    plot.title = element_text(size = 10, face = "bold"),
+    axis.title.x = element_text(size = 12),
+    axis.title.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10),
+    axis.text.y = element_text(size = 10),
+    #legend.title = element_text(size = 10),
+    #legend.text = element_text(size = 8)
+  )
+# Show the plot
+print(Plot3a_RIF_r_Pr_black)
+
+```
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot3a_RIF_r_Pr_black.png", plot = Plot3a_RIF_r_Pr_black, width = 6, height = 4, dpi = 600)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Pr vs RIF svg: P1 fijo, load
+
+
+```{r message=FALSE, warning=FALSE}
+Prob_r <- seq(0.0001, 0.5, 0.00005)
+Prob1 <- 0.6
+RIF <- Prob1 / Prob_r
+D <- data.frame(Prob_r,RIF)
+
+Plot3a_SVG_RIF_r_Pr_black <- ggplot(D, aes(y = RIF, x = Prob_r)) +
+geom_point( size=1, color="darkblue") +
+labs( fill= "",
+    x =expression("Probability " * widehat(P)(R==r)),
+    #y = expression(widehat(Phi)(r)),
+    #title = expression(" RIF Index vs " * " Rank (r)" * " for different values of " * theta)
+    y = expression(widehat(Phi)(r)),
+    title = expression("(c) " * widehat(P)(R==1)== 0.6 * " fixed: As prob. incr., RIF decr.")
+  ) +
+  ylim(0, 50)+
+theme_minimal()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+  
+# Show the plot
+print(Plot3a_SVG_RIF_r_Pr_black)
+
+```
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot3a_SVG_RIF_r_Pr_black.svg", plot = Plot3a_SVG_RIF_r_Pr_black, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Pr vs RIF png: P1 variable, load
+
+
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_r <- seq(0.0025, 0.25, 0.00005)
+
+# Defines different values for Prob1
+Prob1_values <- seq(0, 1, by = 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob1 in Prob1_values) {
+  RIF <- Prob1 / Prob_r
+  data <- rbind(data, data.frame(Prob_r, RIF, Prob1))
+}
+
+# Create the plot with ggplot2
+Plot3b_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_r, color = Prob1, group = Prob1)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==r)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(c) RIF vs " * widehat(P)(R==r)* " for different values of " * widehat(P)(R==1))
+   ) +
+  ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==1) * ":")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10), 
+    legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+  ) 
+
+# Show the plot
+print(Plot3b_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot3b_RIF_r_Pr_black.png", plot = Plot3b_RIF_r_Pr_black, width = 6, height = 4, dpi = 600)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Pr vs RIF png: P1 variable, load
+
+
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_r <- seq(0.0025, 0.25, 0.00005)
+
+# Defines different values for Prob1
+Prob1_values <- seq(0, 1, by = 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob1 in Prob1_values) {
+  RIF <- Prob1 / Prob_r
+  data <- rbind(data, data.frame(Prob_r, RIF, Prob1))
+}
+
+# Create the plot with ggplot2
+Plot3b_SGV_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_r, color = Prob1, group = Prob1)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==r)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(c) RIF vs " * widehat(P)(R==r)* " for different values of " * widehat(P)(R==1))
+   ) +
+  ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==1) * ":")) +
+  theme_minimal() +
+ theme_minimal()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10), 
+    legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+  ) 
+
+# Show the plot
+print(Plot3b_SGV_RIF_r_Pr_black)
+```
+
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot3b_SGV_RIF_r_Pr_black.svg", plot = Plot3b_SGV_RIF_r_Pr_black, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Pr vs RIF png: P1 variable, load
+
+
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_r <- seq(0.0025, 0.25, 0.00005)
+
+# Defines different values for Prob1
+Prob1_values <- seq(0, 1, by = 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob1 in Prob1_values) {
+  RIF <- Prob1 / Prob_r
+  data <- rbind(data, data.frame(Prob_r, RIF, Prob1))
+}
+
+# Create the plot with ggplot2
+Plot3c_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_r, color = Prob1, group = Prob1)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==r)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(c) RIF vs " * widehat(P)(R==r)* " for different values of " * widehat(P)(R==1))
+   ) +
+  ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==1) * ":")) +
+  theme_minimal() +
+   theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    #legend.title = element_text(size = 14),
+    #legend.text = element_text(size = 10),
+    #legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+    ) 
+
+# Show the plot
+print(Plot3c_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot3c_RIF_r_Pr_black.png", plot = Plot3c_RIF_r_Pr_black, width = 6, height = 3, dpi = 600)
+
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Pr vs RIF svg: P1 variable, load
+
+
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_r <- seq(0.0025, 0.25, 0.00005)
+
+# Defines different values for Prob1
+Prob1_values <- seq(0, 1, by = 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob1 in Prob1_values) {
+  RIF <- Prob1 / Prob_r
+  data <- rbind(data, data.frame(Prob_r, RIF, Prob1))
+}
+
+# Create the plot with ggplot2
+Plot3c_SVG_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_r, color = Prob1, group = Prob1)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==r)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(c) RIF vs " * widehat(P)(R==r)* " for different values of " * widehat(P)(R==1))
+   ) +
+  ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==1) * ":")) +
+  theme_minimal() +
+   theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    #legend.title = element_text(size = 14),
+    #legend.text = element_text(size = 10),
+    #legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+    ) 
+
+# Show the plot
+print(Plot3c_SVG_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot3c_SVG_RIF_r_Pr_black.svg", plot = Plot3c_SVG_RIF_r_Pr_black, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Plot P1 vs RIF
+
+### P1 vs RIF png: Pr fijo, load
+
+```{r message=FALSE, warning=FALSE}
+Prob_1 <- seq(0.0001, 1, 0.00005)
+Prob_r <- 0.05
+RIF <- Prob_1 / Prob_r
+
+# Defines different values for Prob1
+Prob_r_values <- seq(0.0025, 0.25, 0.00005)
+
+# Create a data frame to store the results
+D <- data.frame(Prob_1,RIF)
+
+Plot4a_RIF_r_Pr_black <- ggplot(D, aes(y = RIF, x = Prob_1)) +
+geom_point( size=1, color="darkblue") +
+labs( fill= "",
+    x =expression("Probability " * widehat(P)(R==1)),
+    #y = expression(widehat(Phi)(r)(r)),
+    #title = expression(widehat(Phi)(r)(r) * " vs " * " Rank (r)" * " for different values of " * theta)
+    y = expression(widehat(Phi)(r)),
+    title = expression("(d) " * widehat(P)(R==r)== 0.05 * " fixed: As the probability increases, the RIF Index increases")
+  ) +
+  ylim(0, 25)+
+theme_minimal()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10), 
+  
+    #legend.position = "bottom" # Move legend to the bottom
+  )
+# Show the plot
+print(Plot4a_RIF_r_Pr_black)
+
+```
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot4a_RIF_r_Pr_black.png", plot = Plot4a_RIF_r_Pr_black, width = 6, height = 4, dpi = 600)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### P1 vs RIF svg: Pr fijo, load
+
+```{r message=FALSE, warning=FALSE}
+Prob_1 <- seq(0.0001, 1, 0.00005)
+Prob_r <- 0.05
+RIF <- Prob_1 / Prob_r
+
+# Defines different values for Prob1
+Prob_r_values <- seq(0.0025, 0.25, 0.00005)
+
+# Create a data frame to store the results
+D <- data.frame(Prob_1,RIF)
+
+Plot4a_SVG_RIF_r_Pr_black <- ggplot(D, aes(y = RIF, x = Prob_1)) +
+geom_point( size=1, color="darkblue") +
+labs( fill= "",
+    x =expression("Probability " * widehat(P)(R==1)),
+    #y = expression(widehat(Phi)(r)(r)),
+    #title = expression(widehat(Phi)(r)(r) * " vs " * " Rank (r)" * " for different values of " * theta)
+    y = expression(widehat(Phi)(r)),
+    title = expression("(d) " * widehat(P)(R==r)== 0.05 * " fixed: As prob. incr., RIF incr.")
+  ) +
+  ylim(0, 25)+
+theme_minimal()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10), 
+  
+    #legend.position = "bottom" # Move legend to the bottom
+  )
+# Show the plot
+print(Plot4a_SVG_RIF_r_Pr_black)
+
+```
+
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot4a_SVG_RIF_r_Pr_black.svg", plot = Plot4a_SVG_RIF_r_Pr_black, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### P1 vs RIF png: Pr variable, load
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_1 <- seq(0.0001, 1, 0.00005)
+
+# Defines different values for Prob1
+#Prob_r_values <- c(0.05, 0.1)
+Prob_r_values <- seq(0.1, 1, 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob_r in Prob_r_values) {
+  RIF <- Prob_1 / Prob_r
+  data <- rbind(data, data.frame(Prob_1, Prob_r, RIF))
+}
+
+# Create the plot with ggplot2
+Plot4b_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_1, color = Prob_r, group = Prob_r)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==1)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(d) RIF vs " * widehat(P)(R==1)* " for different values of " * widehat(P)(R==r))
+   ) +
+  #ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==r) * ":")) +
+  theme_minimal() +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10),  
+    legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+    ) 
+
+# Show the plot
+print(Plot4b_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot4b_RIF_r_Pr_black.png", plot = Plot4b_RIF_r_Pr_black, width = 6, height = 4, dpi = 600)
+
+```
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### P1 vs RIF png: Pr variable, load
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_1 <- seq(0.0001, 1, 0.00005)
+
+# Defines different values for Prob1
+#Prob_r_values <- c(0.05, 0.1)
+Prob_r_values <- seq(0.1, 1, 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob_r in Prob_r_values) {
+  RIF <- Prob_1 / Prob_r
+  data <- rbind(data, data.frame(Prob_1, Prob_r, RIF))
+}
+
+# Create the plot with ggplot2
+Plot4b_SGV_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_1, color = Prob_r, group = Prob_r)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==1)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(d) RIF vs " * widehat(P)(R==1)* " for different values of " * widehat(P)(R==r))
+   ) +
+  #ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==r) * ":")) +
+  theme_minimal() +
+  theme_minimal()+
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10),  
+    legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+    ) 
+
+# Show the plot
+print(Plot4b_SGV_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot4b_SGV_RIF_r_Pr_black.svg", plot = Plot4b_SGV_RIF_r_Pr_black, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### P1 vs RIF png: Pr variable, load
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_1 <- seq(0.0001, 1, 0.00005)
+
+# Defines different values for Prob1
+#Prob_r_values <- c(0.05, 0.1)
+Prob_r_values <- seq(0.1, 1, 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob_r in Prob_r_values) {
+  RIF <- Prob_1 / Prob_r
+  data <- rbind(data, data.frame(Prob_1, Prob_r, RIF))
+}
+
+# Create the plot with ggplot2
+Plot4c_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_1, color = Prob_r, group = Prob_r)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==1)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(d) RIF vs " * widehat(P)(R==1)* " for different values of " * widehat(P)(R==r))
+   ) +
+  #ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==r) * ":")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10), 
+    #legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+    ) 
+
+# Show the plot
+print(Plot4c_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot4c_RIF_r_Pr_black.png", plot = Plot4c_RIF_r_Pr_black, width = 6, height = 3, dpi = 600)
+
+```
+
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### P1 vs RIF svg: Pr variable, load
+
+```{r}
+library(ggplot2)
+
+# Defines a sequence of values for Prob_r
+Prob_1 <- seq(0.0001, 1, 0.00005)
+
+# Defines different values for Prob1
+#Prob_r_values <- c(0.05, 0.1)
+Prob_r_values <- seq(0.1, 1, 0.1)
+
+# Create a data frame to store the results
+data <- data.frame()
+
+for (Prob_r in Prob_r_values) {
+  RIF <- Prob_1 / Prob_r
+  data <- rbind(data, data.frame(Prob_1, Prob_r, RIF))
+}
+
+# Create the plot with ggplot2
+Plot4c_SGV_RIF_r_Pr_black <- ggplot(data, aes(y = RIF, x = Prob_1, color = Prob_r, group = Prob_r)) +
+  geom_point(size = 0.5) +
+  labs( 
+   x =expression("Probability " * widehat(P)(R==1)),
+    y = expression(widehat(Phi)(r)),
+    title = expression("(d) RIF vs " * widehat(P)(R==1)* " for different values of " * widehat(P)(R==r))
+   ) +
+  #ylim(0, 50) +
+  scale_color_gradient(low = "lightblue", high = "darkblue", name = expression(widehat(P)(R==r) * ":")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 10), 
+    #legend.position = "bottom" # Move legend to the bottom
+    #legend.position = "none"
+    ) 
+
+# Show the plot
+print(Plot4c_SGV_RIF_r_Pr_black)
+```
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot4c_SGV_RIF_r_Pr_black.svg", plot = Plot4c_SGV_RIF_r_Pr_black, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Automated funtions (input: particular values)
+
+### `RIF_reg_1`: regressions (delta, beta) 
+
+```{r}
+RIF_reg_1 <- function(rank, count) {
+  # Filter data by xmin
+  filtered_count <- count[count >= xmin]
+  
+  # Verify that filtered_count is not empty
+  if (length(filtered_count) == 0) {
+    return(data.frame())
+  }
+  
+  # Calculate the range
+  rank_xmin <- 1:length(filtered_count)
+  
+  # Create a data frame
+  data <- data.frame(Rank = rank_xmin, Count = filtered_count)
+  
+  # Transforming data using the natural logarithm
+  data$log_Rank <- log(data$Rank)
+  data$log_Count <- log(data$Count)
+  
+  # Fit the linear regression model in log-log space.
+  model <- lm(log_Count ~ log_Rank, data = data)
+  
+  #Summary of the model
+  s <- summary(model)
+  print(summary(model))
+  
+  # Obtain the coefficients of the model
+  coefficients <- coef(model)
+  intercept <- coefficients[1]
+  slope <- coefficients[2]
+  
+  # Transform the coefficients to the original power law form
+  delta <- exp(intercept)
+  beta <- slope
+  
+  # Return the transformed coefficients and the r.square
+  return(list(delta = delta, beta = beta, r.squared=s$r.squared))
+}
+
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_reg_1`: Greece, boot, infrastructure
+
+```{r}
+alfa <- 6.331
+xmin <- 71
+count <- c(121, 82, 80, 79, 71, 16, 14, 13, 8, 8, 5, 2)
+
+result <- RIF_reg_1(rank, count)
+result
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+###  `RIF_by_2`:  A, B, C, theta
+
+```{r}
+RIF_by_2 <- function(count, xmin, alfa) {
+  # Filter data by xmin
+  filtered_count <- count[count >= xmin]
+  
+  # Verify that filtered_count is not empty
+  if (length(filtered_count) == 0) {
+    return(data.frame())
+  }
+  
+  # Calculate the range
+  rank_xmin <- 1:length(filtered_count)
+  
+  # Create a data frame
+  data <- data.frame(Rank = rank_xmin, Count = filtered_count)
+  
+  # Transforming data using the natural logarithm
+  data$log_Rank <- log(data$Rank)
+  data$log_Count <- log(data$Count)
+  
+  # Fit the linear regression model in log-log space.
+  model <- lm(log_Count ~ log_Rank, data = data)
+  
+  #Summary of the model
+  s <- summary(model)
+  
+  # Obtain the coefficients of the model
+  coefficients <- coef(model)
+  intercept <- coefficients[1]
+  slope <- coefficients[2]
+  
+  # Transform the coefficients to the original power law form
+  delta <- exp(intercept)
+  beta <- slope
+  
+  # Calculate the constant A
+  theta <- - alfa * beta
+  fraccion_rank <- (rank_xmin) ^ (-theta)
+  suma_rank <- sum(fraccion_rank)
+  A_rank <- 1 / suma_rank
+  
+  # Calculate P(R=r)
+  probabilities_rank <- A_rank * fraccion_rank
+  
+  # Calculate RIF(r)
+  ratio <- probabilities_rank[1] / probabilities_rank
+  
+  # Calculate the constant C
+  fraccion_x <- 1/(filtered_count)^alfa
+  fraccion_x
+  suma_x <- sum(fraccion_x)
+  C_rank <- 1/suma_x
+  
+  # Calculate the constant B
+  B_rank <- (A_rank* C_rank) / (delta ^ alfa)
+  
+  # Create the dataframe
+  result_data <- data.frame(
+    Rank = rank_xmin, 
+    Count = filtered_count, 
+    Probability = round(probabilities_rank, 3),
+    Ratio = round(ratio, 3),
+    alfa = round(alfa, 3),
+    xmin = xmin,
+    delta = round(delta, 3),
+    beta = round(beta, 3),
+    r.squared = round(s$r.squared, 3),  
+    theta= round(theta,3),
+    A = round(A_rank, 3),
+    B = round(B_rank, 3),
+    C = round(C_rank, 3)
+  )
+  
+  result_data[-1, 5:dim(result_data)[2]] <- ""
+  
+  # Return the complete dataframe
+  return(result_data)
+}
+
+```
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_by_2`: Greece, MLE-KS, infraestructure
+
+```{r message=FALSE, warning=FALSE}
+alfa <- 6.331
+xmin <- 71
+count <- c(121, 82, 80, 79, 71, 16, 14, 13, 8, 8, 5, 2)
+
+result <- RIF_by_2(count, xmin, alfa)
+print(result)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### `RIF_by_2`: Greece, bootstrapping, migrant
+
+```{r message=FALSE, warning=FALSE}
+alfa <- 3.93
+xmin <- 35.4
+count <- c(121, 82, 80, 79, 71, 16, 14, 13, 8, 8, 5, 2)
+
+result <- RIF_by_2(count, xmin, alfa)
+print(result)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Automated funtions (input: data frame)
+
+### `RIF_all_3`:  all parameters, no country column
+
+
+```{r}
+
+# Define function RIF_by_type
+RIF_by_type <- function(data, xmin, alfa) {
+  count <- data$count
+  
+  # Filter data by xmin
+  filtered_count <- count[count >= xmin]
+  
+  # Verify that filtered_count is not empty
+  if (length(filtered_count) == 0) {
+    return(data.frame())
+  }
+  
+  # Calculate the range
+  rank_xmin <- 1:length(filtered_count)
+  
+  # Create a dataframe
+  filtered_data <- data[data$count >= xmin, ]
+  
+  # Create a dataframe
+  dt <- data.frame(Rank = rank_xmin, Count = filtered_count)
+  
+  # Transforming data using the natural logarithm
+  dt$log_Rank <- log(dt$Rank)
+  dt$log_Count <- log(dt$Count)
+  
+  # Fit the linear regression model in log-log space.
+  model <- lm(log_Count ~ log_Rank, data = dt)
+  
+  # Summary of the model
+  s <- summary(model)
+  
+  # Obtain the coefficients of the model
+  coefficients <- coef(model)
+  intercept <- coefficients[1]
+  slope <- coefficients[2]
+  
+  # Transform the coefficients to the original power law form
+  delta <- exp(intercept)
+  beta <- slope
+  
+  # Calcular la constante A
+  theta <- - alfa * beta
+  fraccion_rank <- (rank_xmin) ^ (-theta)
+  suma_rank <- sum(fraccion_rank)
+  A_rank <- 1 / suma_rank
+  
+  # Calculate P(R=r)
+  probabilities_rank <- A_rank * fraccion_rank
+  
+  # Calculate RIF(r)
+  ratio <- probabilities_rank[1] / probabilities_rank
+  
+  # Calculate the constant C
+  fraccion_x <- 1 / (filtered_count) ^ alfa
+  suma_x <- sum(fraccion_x)
+  C_rank <- 1 / suma_x
+  
+  # Calculate the constant B
+  B_rank <- (A_rank * C_rank) / (delta ^ alfa)
+  
+  # Create the dataframe
+  result_data <- data.frame(
+    Rank = rank_xmin, 
+    Count = filtered_count, 
+    Proportion = filtered_data$proportion,
+    Factor = filtered_data$factor,
+    Probability = round(probabilities_rank, 3),
+    Ratio = round(ratio, 3),
+    alfa = round(alfa, 3),
+    xmin = xmin,
+    delta = round(delta, 3),
+    beta = round(beta, 3),
+    r.squared = round(s$r.squared, 3),  
+    theta = round(theta, 3),
+    A = round(A_rank, 3),
+    B = round(B_rank, 3),
+    C = round(C_rank, 3)
+  )
+  
+  result_data[-1, 7:dim(result_data)[2]] <- ""
+  
+  # Return the complete dataframe
+  return(result_data)
+}
+
+###
+
+# Install and load necessary libraries
+required_packages <- c("stringi", "dplyr")
+
+# Install missing packages
+new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+# Load packages
+lapply(required_packages, library, character.only = TRUE)
+
+####
+
+
+# Main function to combine results
+RIF_all_3 <- function(data) {
+  combined_result <- data.frame()
+  
+  types <- unique(data$type)
+  
+  for (type in types) {
+    sub_data <- data[data$type == type, ]
+    
+# Filter valid values for MLE-KS method
+    valid_indices_KS <- which(!is.na(sub_data$alfa_KS) & !is.na(sub_data$xmin_KS))
+    params_KS <- list(alfa = sub_data$alfa_KS[valid_indices_KS], 
+                      xmin = sub_data$xmin_KS[valid_indices_KS])
+    
+    for (i in 1:length(params_KS$alfa)) {
+      result_KS <- RIF_by_type(sub_data, params_KS$xmin[i], params_KS$alfa[i])
+      if (nrow(result_KS) > 0) {
+        result_KS$Type <- paste("MLE-KS", type, i, sep = "_")
+        combined_result <- rbind(combined_result, result_KS)
+      }
+    }
+    
+# Filter valid values for Bootstrapping method
+    valid_indices_boot <- which(!is.na(sub_data$alfa_boot) & !is.na(sub_data$xmin_boot))
+    params_boot <- list(alfa = sub_data$alfa_boot[valid_indices_boot], 
+                        xmin = sub_data$xmin_boot[valid_indices_boot])
+    
+    for (i in 1:length(params_boot$alfa)) {
+      result_boot <- RIF_by_type(sub_data, params_boot$xmin[i], params_boot$alfa[i])
+      if (nrow(result_boot) > 0) {
+        result_boot$Type <- paste("Bootstrapping", type, i, sep = "_")
+        combined_result <- rbind(combined_result, result_boot)
+      }
+    }
+  }
+  
+   # Clean strange characters in the Factor column
+  library(stringi)
+  combined_result$Factor <- stri_trans_general(combined_result$Factor, "Latin-ASCII")
+  
+   # Reorder columns
+  variables <- c("Type", "Rank", "Factor", "Count", "Proportion", "Probability", "Ratio", 
+                 "alfa", "xmin", "delta", "beta",  "r.squared", "theta", "A", "B", "C")
+  combined_result <- combined_result[, variables]
+  
+  # Adjust the index in the Type column according to the factors (1, 2, 3, 4...)
+  combined_result$Type <- ave(combined_result$Type, 
+                              combined_result$Type, 
+                              FUN = function(x) paste0(sub("_\\d+$", "", x), "_", seq_along(x)))
+  
+  return(combined_result)
+}
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_all_3`: Colombia
+
+```{r message=FALSE, warning=FALSE}
+RIF_Colombia <- RIF_all_3(Colombia_freq)
+
+head(RIF_Colombia)
+names(RIF_Colombia)
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_all_4`:  all parameters, country column
+
+
+```{r}
+# Install and load necessary libraries
+required_packages <- c("stringi", "dplyr")
+
+# Install missing packages
+new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+# Load packages
+lapply(required_packages, library, character.only = TRUE)
+
+
+
+# Define function RIF_by_type
+RIF_by_type <- function(data, xmin, alfa) {
+  count <- data$count
+  
+  # Filter data by xmin
+  filtered_count <- count[count >= xmin]
+  
+  # Verify that filtered_count is not empty
+  if (length(filtered_count) == 0) {
+    return(data.frame())
+  }
+  
+  # Calculate the range
+  rank_xmin <- 1:length(filtered_count)
+  
+  # Create a dataframe
+  filtered_data <- data[data$count >= xmin, ]
+  
+  # Create a dataframe
+  dt <- data.frame(Rank = rank_xmin, Count = filtered_count)
+  
+  # Transforming data using the natural logarithm
+  dt$log_Rank <- log(dt$Rank)
+  dt$log_Count <- log(dt$Count)
+  
+  # Fit the linear regression model in log-log space.
+  model <- lm(log_Count ~ log_Rank, data = dt)
+  
+  # Summary of the model
+  s <- summary(model)
+  
+  # Obtain the coefficients of the model
+  coefficients <- coef(model)
+  intercept <- coefficients[1]
+  slope <- coefficients[2]
+  
+  # Transform the coefficients to the original power law form
+  delta <- exp(intercept)
+  beta <- slope
+  
+  # Calcular la constante A
+  theta <- - alfa * beta
+  fraccion_rank <- (rank_xmin) ^ (-theta)
+  suma_rank <- sum(fraccion_rank)
+  A_rank <- 1 / suma_rank
+  
+  # Calculate P(R=r)
+  probabilities_rank <- A_rank * fraccion_rank
+  
+  # Calculate RIF(r)
+  ratio <- probabilities_rank[1] / probabilities_rank
+  
+  # Calculate the constant C
+  fraccion_x <- 1 / (filtered_count) ^ alfa
+  suma_x <- sum(fraccion_x)
+  C_rank <- 1 / suma_x
+  
+  # Calculate the constant B
+  B_rank <- (A_rank * C_rank) / (delta ^ alfa)
+  
+  # Create the dataframe
+  result_data <- data.frame(
+    Rank = rank_xmin, 
+    Count = filtered_count, 
+    Proportion = filtered_data$proportion,
+    Factor = filtered_data$factor,
+    Probability = round(probabilities_rank, 3),
+    Ratio = round(ratio, 3),
+    alfa = round(alfa, 3),
+    xmin = xmin,
+    delta = round(delta, 3),
+    beta = round(beta, 3),
+    r.squared = round(s$r.squared, 3),  
+    theta = round(theta, 3),
+    A = round(A_rank, 3),
+    B = round(B_rank, 3),
+    C = round(C_rank, 3)
+  )
+  
+  result_data[-1, 7:dim(result_data)[2]] <- ""
+  
+  # Return the complete dataframe
+  return(result_data)
+}
+
+# Main function to combine results
+RIF_all_4 <- function(data, country) {
+  combined_result <- data.frame()
+  
+  types <- unique(data$type)
+  
+  for (type in types) {
+    sub_data <- data[data$type == type, ]
+    
+    # Filter valid values for MLE-KS method
+    valid_indices_KS <- which(!is.na(sub_data$alfa_KS) & !is.na(sub_data$xmin_KS))
+    params_KS <- list(alfa = sub_data$alfa_KS[valid_indices_KS], 
+                      xmin = sub_data$xmin_KS[valid_indices_KS])
+    
+    for (i in 1:length(params_KS$alfa)) {
+      result_KS <- RIF_by_type(sub_data, params_KS$xmin[i], params_KS$alfa[i])
+      if (nrow(result_KS) > 0) {
+        result_KS$Type <- paste("MLE-KS", type, i, sep = "_")
+        combined_result <- rbind(combined_result, result_KS)
+      }
+    }
+    
+    # Filter valid values for Bootstrapping method
+    valid_indices_boot <- which(!is.na(sub_data$alfa_boot) & !is.na(sub_data$xmin_boot))
+    params_boot <- list(alfa = sub_data$alfa_boot[valid_indices_boot], 
+                        xmin = sub_data$xmin_boot[valid_indices_boot])
+    
+    for (i in 1:length(params_boot$alfa)) {
+      result_boot <- RIF_by_type(sub_data, params_boot$xmin[i], params_boot$alfa[i])
+      if (nrow(result_boot) > 0) {
+        result_boot$Type <- paste("Bootstrapping", type, i, sep = "_")
+        combined_result <- rbind(combined_result, result_boot)
+      }
+    }
+  }
+
+  # Clean strange characters in the Factor column
+  library(stringi)
+  combined_result$Factor <- stri_trans_general(combined_result$Factor, "Latin-ASCII")
+  
+  # Add Country column
+  combined_result$Country <- country
+  
+  # Reorder columns
+  variables <- c("Country", "Type", "Rank", "Factor", "Count", "Proportion", "Probability", "Ratio", 
+                 "alfa", "xmin", "delta", "beta",  "r.squared", "theta", "A", "B", "C")
+  combined_result <- combined_result[, variables]
+  
+  # Adjust the index in the Type column according to the factors (1, 2, 3, 4...)
+  combined_result$Type <- ave(combined_result$Type, 
+                              combined_result$Type, 
+                              FUN = function(x) paste0(sub("_\\d+$", "", x), "_", seq_along(x)))
+  
+  # Separate MLE-KS_Bootstrapping_i
+  library(dplyr)
+  result_country <- combined_result %>%
+    mutate(Method = ifelse(grepl("MLE-KS", Type), "MLE-KS", "Bootstrapping"),
+           Type = gsub("MLE-KS_|Bootstrapping_|_[0-9]+", "", Type)) %>%
+    select(Country, Method, everything())
+  
+  return(result_country)
+
+}
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_all_4`: Colombia
+
+```{r message=FALSE, warning=FALSE}
+RIF_Colombia <- RIF_all_4(Colombia_freq, "Colombia")
+
+head(RIF_Colombia)
+names(RIF_Colombia)
+```
+
+
+
+```{r}
+# Export to CSV
+write.csv(RIF_Colombia, file = "RIF_Colombia.csv", row.names = FALSE)
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_all_4`: Greece
+
+```{r message=FALSE, warning=FALSE}
+# Calling the main function to combine all results
+RIF_Greece <- RIF_all_4(Greece_freq, "Greece")
+head(RIF_Greece)
+names(RIF_Greece)
+```
+
+```{r}
+# Export to CSV
+write.csv(RIF_Greece, file = "RIF_Greece.csv", row.names = FALSE)
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+    
+### `RIF_5`: combining results in excel
+    
+    
+```{r message=FALSE, warning=FALSE}
+# Function to save results to Excel
+RIF_excel_5 <- function(data1, country1, data2, country2, filename) {
+  required_packages <- c("stringi", "dplyr", "openxlsx")
+  
+  # Install missing packages
+  new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+  if(length(new_packages)) install.packages(new_packages)
+  
+  # Load packages
+  lapply(required_packages, library, character.only = TRUE)
+  
+  # Generate dataframes with correct country names
+  df1 <- RIF_all_4(data1, country1)
+  df2 <- RIF_all_4(data2, country2)
+  
+  # Remove row names
+  rownames(df1) <- NULL
+  rownames(df2) <- NULL
+  
+  # Create a new Excel workbook
+  wb <- createWorkbook()
+  
+  # Add sheets to the workbook
+  addWorksheet(wb, country1)
+  addWorksheet(wb, country2)
+  
+  # Write dataframes to the respective sheets
+  writeData(wb, sheet = country1, df1)
+  writeData(wb, sheet = country2, df2)
+  
+  # Save the workbook
+  saveWorkbook(wb, file = filename, overwrite = TRUE)
+}
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+    
+### `RIF_5`: our data Colombia and Greece
+
+```{r message=FALSE, warning=FALSE}
+RIF_excel_5(Colombia_freq, "Colombia", Greece_freq, "Greece", "RIF_all_2sheets.xlsx")
+    
+```
+    
+
+    
+    
+```{r, eval=FALSE, echo=FALSE}
+
+# Install and load necessary libraries
+required_packages <- c("stringi", "dplyr", "openxlsx")
+
+# Install missing packages
+new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+# Load packages
+lapply(required_packages, library, character.only = TRUE)
+
+  #install.packages("openxlsx")
+  #library(openxlsx)
+  
+  # Supongamos que ya tienes result1 y result2
+  # Crear un nuevo archivo de Excel
+  wb <- createWorkbook()
+  
+  # Agregar hojas al archivo de Excel
+  addWorksheet(wb, "Colombia")
+  addWorksheet(wb, "Greece")
+  
+  # Escribir los dataframes en las hojas correspondientes
+  writeData(wb, sheet = "Colombia", RIF_Colombia)
+  writeData(wb, sheet = "Greece", RIF_Greece)
+  
+  # Guardar el archivo de Excel
+  saveWorkbook(wb, file = "RIF_all_2sheets.xlsx", overwrite = TRUE)
+```
+  
+  
+  
+  
+
+  
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+    
+# Plot the RIF Index for both countries
+
+
+### Data in 1 sheet: all
+    
+    
+```{r message=FALSE, warning=FALSE}
+# Install and load necessary libraries
+required_packages <- c("dplyr", "readr")
+
+# Install missing packages
+new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+
+# Combine dataframes
+combined_data_all <- bind_rows(RIF_Colombia, RIF_Greece)
+
+# Export to CSV
+write.csv(combined_data_all, file = "RIF_all_1sheet.csv", row.names = FALSE)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Data in 1 sheet: whitout `Type=locals`
+    
+```{r message=FALSE, warning=FALSE}
+# Filter data
+Colombia_no_locals <- RIF_Colombia %>% filter(Type != "Locals")
+Greece_no_locals <- RIF_Greece %>% filter(Type != "Locals")
+
+# Combine dataframes
+combined_data_no_locals <- bind_rows(Colombia_no_locals, Greece_no_locals)
+
+# Export to CSV
+write.csv(combined_data_no_locals, file = "RIF_all_1sheet_no_locals.csv", row.names = FALSE)
+
+combined_data <- combined_data_no_locals
+```
+
+
+  
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Plot 1a: Type by Method ~ Country
+  
+```{r message=FALSE, warning=FALSE}
+
+# Install and load necessary libraries
+required_packages <- c("dplyr", "ggplot2", "readr")
+
+# Install missing packages
+new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+# Load packages
+lapply(required_packages, library, character.only = TRUE)
+
+  p5a <- ggplot(combined_data, aes(x = Rank, y = Ratio, color = Type, group = Type)) +
+    geom_line(size=1.0) + # Adding lines to join the dots
+    geom_point(size=1.0) + # Show only the points
+    labs(
+      x = expression("Rank (r) respect to all " * x > xmin),
+      y = "RIF (Ratio)",
+      title = "RIF (Ratio) vs Rank (r) for different types, methods and countries"
+    ) +
+    scale_x_continuous(breaks = seq(1, max(combined_data$Rank), by = 1)) + # Display discrete Rank values
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 22, face = "bold"),
+      axis.title.x = element_text(size = 22),
+      axis.title.y = element_text(size = 22),
+      axis.text.x = element_text(size = 20),
+      axis.text.y = element_text(size = 20),
+      legend.title = element_text(size = 22),
+      legend.text = element_text(size = 20),
+      strip.text = element_text(size = 20, face = "bold"), # Increasing size of facet_grid labels
+      strip.background = element_blank(), # Opcional: eliminar el fondo de las etiquetas de facetas
+      strip.text.x = element_text(margin = margin(t = 10, b = 10)),
+      strip.text.y = element_text(margin = margin(l = 10, r = 10)),
+      panel.spacing = unit(1, "lines") # Añadir espacio entre las facetas y las etiquetas
+    ) +
+    facet_grid(Method ~ Country, switch = "both")
+  
+  # Show the plot
+  print(p5a)
+```
+  
+  
+  
+  
+```{r message=FALSE, warning=FALSE}
+  # Save the graphic with high resolution
+ggsave("Plot5a_Method_Country.png", plot = p5a, width = 14, height = 8, dpi = 300)
+```
+  
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Plot 1b: Type by Method ~ Country
+  
+  
+```{r}
+data_theta1 = combined_data %>% group_by(Country,Method,  Type) %>% 
+      filter(row_number() == 1) %>% summarize(theta = first(theta), .groups = 'drop')
+data_theta1
+```
+  
+  
+```{r, eval=FALSE}
+# Ensure theta is numeric
+data_theta$theta1 <- as.numeric(data_theta1$theta)
+
+  # Generate the first plot with theta values in the top-left corner of each facet
+p5b <- ggplot(combined_data, aes(x = Rank, y = Ratio, color = Type, group = Type)) +
+  geom_line(size = 1.0) + 
+  geom_point(size = 1.0) + 
+  labs(
+    expression("Rank (r) respect to all " * x > xmin),
+    y = "RIF (Ratio)",
+    title = "RIF (Ratio) vs Rank (r) for different types, methods and countries"
+  ) +
+  scale_x_continuous(breaks = seq(1, max(combined_data$Rank), by = 1)) + 
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold"),
+    axis.title.x = element_text(size = 22),
+    axis.title.y = element_text(size = 22),
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    legend.title = element_text(size = 22),
+    legend.text = element_text(size = 20),
+    strip.text = element_text(size = 20, face = "bold"), 
+    strip.background = element_blank(), 
+    strip.text.x = element_text(margin = margin(t = 10, b = 10)),
+    strip.text.y = element_text(margin = margin(l = 10, r = 10)),
+    panel.spacing = unit(1, "lines") 
+  ) +
+   facet_grid(Method ~ Country, switch = "both") +
+  geom_text(data = data_theta1,
+    aes(label = paste0("theta = ", round(theta, 2)), x = -Inf, y = Inf, color = NULL),
+    hjust = -0.1, vjust = 1.1, size = 5, inherit.aes = FALSE
+  )
+
+
+# Show the plot
+print(p5b)
+```
+  
+  
+  
+  
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+  # Save the graphic with high resolution
+ggsave("Plot5b_Method_Country.png", plot = p5b, width = 14, height = 8, dpi = 300)  
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Plot 1c: Type by Method ~ Country
+  
+```{r}
+data_theta2 = combined_data %>% group_by(Country,Method,  Type) %>% filter(Rank == max(Rank)) %>% summarize(theta = first(theta), .groups = 'drop')
+data_theta2
+```
+ 
+  
+  
+```{r, eval=FALSE}
+# Ensure theta is numeric
+data_theta$theta <- as.numeric(data_theta$theta)
+
+  # Generate the first plot with theta values in the top-left corner of each facet
+p5c <- ggplot(combined_data, aes(x = Rank, y = Ratio, color = Type, group = Type)) +
+  geom_line(size = 1.0) + 
+  geom_point(size = 1.0) + 
+  labs(
+    expression("Rank (r) respect to all " * x > xmin),
+    y = "RIF (Ratio)",
+    title = "RIF (Ratio) vs Rank (r) for different types, methods and countries"
+  ) +
+  scale_x_continuous(breaks = seq(1, max(combined_data$Rank), by = 1)) + 
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 22, face = "bold"),
+    axis.title.x = element_text(size = 22),
+    axis.title.y = element_text(size = 22),
+    axis.text.x = element_text(size = 20),
+    axis.text.y = element_text(size = 20),
+    legend.title = element_text(size = 22),
+    legend.text = element_text(size = 20),
+    strip.text = element_text(size = 20, face = "bold"), 
+    strip.background = element_blank(), 
+    strip.text.x = element_text(margin = margin(t = 10, b = 10)),
+    strip.text.y = element_text(margin = margin(l = 10, r = 10)),
+    panel.spacing = unit(1, "lines") 
+  ) +
+  facet_grid(Method ~ Country, switch = "both") +
+  geom_text(data = data_theta2,
+    aes(label = paste0("theta = ", round(theta, 2)), x = Rank, y = Ratio, color = Type),
+    hjust = -0.1, vjust = 0.5, size = 4, check_overlap = TRUE
+  )
+
+
+
+
+# Show the plot
+print(p5c)
+```
+  
+  
+  
+  
+```{r, eval=FALSE,  message=FALSE, warning=FALSE}
+  # Save the graphic with high resolution
+ggsave("Plot5c_Method_Country.png", plot = p5c, width = 14, height = 8, dpi = 300)  
+```
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+    
+### Plot: Country by Method ~ Type
+    
+    
+```{r}
+  p6a <- ggplot(combined_data, aes(x = Rank, y = Ratio, color = Country, group = Country)) +
+    geom_line(size=1.0) + # Adding lines to join the dots
+    geom_point(size=1.0) + # Show only the points
+    labs(
+      x = "Rank (r)",
+      y = "RIF (Ratio)",
+      title = "RIF (Ratio) vs Rank (r) for different types, methods and countries"
+    ) +
+    scale_x_continuous(breaks = seq(1, max(combined_data$Rank), by = 1)) + # Display discrete Rank values
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 20, face = "bold"),
+      axis.title.x = element_text(size = 18),
+      axis.title.y = element_text(size = 18),
+      axis.text.x = element_text(size = 16),
+      axis.text.y = element_text(size = 16),
+      legend.title = element_text(size = 18),
+      legend.text = element_text(size = 14),
+      strip.text = element_text(size = 16, face = "bold") # Increasing size of facet_grid labels
+    ) +
+    facet_grid(Method ~ Type)
+  
+  # Show the plot
+  print(p6a)
+```
+  
+  
+```{r message=FALSE, warning=FALSE}
+  # Save the graphic with high resolution
+  ggsave("Plot6a_Method_Type.png", plot = p6a, width = 15, height = 10, dpi = 300)
+```
+  
+  
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+    
+### Plot: Method by Country ~ Type
+    
+    
+    
+```{r}
+  p7a <- ggplot(combined_data, aes(x = Rank, y = Ratio, color = Method, group = Method)) +
+    geom_line(size=1.0) + # Adding lines to join the dots
+    geom_point(size=1.0) + # Show only the points
+    labs(
+      x = "Rank (r)",
+      y = "RIF (Ratio)",
+      title = "RIF (Ratio) vs Rank (r) for different types, methods and countries"
+    ) +
+    scale_x_continuous(breaks = seq(1, max(combined_data$Rank), by = 1)) + # Display discrete Rank values
+    theme_minimal() +
+    theme(
+      plot.title = element_text(size = 20, face = "bold"),
+      axis.title.x = element_text(size = 18),
+      axis.title.y = element_text(size = 18),
+      axis.text.x = element_text(size = 16),
+      axis.text.y = element_text(size = 16),
+      legend.title = element_text(size = 18),
+      legend.text = element_text(size = 14),
+      strip.text = element_text(size = 16, face = "bold") # Increasing size of facet_grid labels
+    ) +
+    facet_grid(Country ~ Type)
+  
+  # Show the plot
+  print(p7a)
+```
+  
+  
+```{r message=FALSE, warning=FALSE}
+  # Save the graphic with high resolution
+  ggsave("Plot7a_Country_Type.png", plot = p7a, width = 15, height = 10, dpi = 300)
+```
+  
+  
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+# Plot X=theta vs Y=Phi for values r
+
+### Load png, color, sin rangos
+
+```{r}
+# Load necessary library
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Define the function to calculate theta values for multiple r values
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1, 15, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Display the results
+#print(results)
+
+# Plot the results
+Plot8a_theta_r_RIF_color_sin_text <- ggplot(results, aes(x = Theta, y = Phi, color = factor(r))) +
+  geom_line() +
+  geom_text_repel(data = results %>% group_by(r) %>% filter(Phi == max(Phi)),
+                  aes(label = r), size = 3.5, nudge_y = 0.1, direction = "x") +
+  labs(title = expression(paste(widehat(theta), " versus ", 
+                                widehat(Phi)(r), " for different values of rank ", r)),
+       x = expression(widehat(theta)),
+       y = expression(widehat(Phi)(r))) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+
+Plot8a_theta_r_RIF_color_sin_text
+```
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot8a_theta_r_RIF_color_sin_text.png", plot = Plot8a_theta_r_RIF_color_sin_text, width = 6, height = 4, dpi = 600)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Load svg, color, sin rangos
+
+```{r}
+# Load necessary library
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Define the function to calculate theta values for multiple r values
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1, 15, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Display the results
+#print(results)
+
+# Plot the results
+Plot8a_SVG_theta_r_RIF_color_sin_text <- ggplot(results, aes(x = Theta, y = Phi, color = factor(r))) +
+  geom_line() +
+  geom_text_repel(data = results %>% group_by(r) %>% filter(Phi == max(Phi)),
+                  aes(label = r), size = 3.5, nudge_y = 0.1, direction = "x") +
+  labs(title = expression(paste(widehat(theta), " versus ",
+                                widehat(Phi)(r), " for different values of rank ", r)),
+       x = expression(widehat(theta)),
+       y = expression(widehat(Phi)(r))) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+
+Plot8a_SVG_theta_r_RIF_color_sin_text
+```
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot8a_SVG_theta_r_RIF_color_sin_text.svg", plot = Plot8a_SVG_theta_r_RIF_color_sin_text, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Load png, blue gradient, divisions
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Define the function to calculate theta values for multiple r values
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+
+
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1, 15, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Display the results
+#print(results)
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Define the color palette
+color_pal <- colorRampPalette(c("lightblue", "blue"))(length(r_values))
+
+# Add the color palette to the data frame
+results$Color <- factor(results$r, labels = color_pal)
+
+# Display the results
+#print(results)
+
+# Plot the results
+# Plot the results
+# Plot the results
+Plot8b_theta_r_RIF_azul_sin_text<- ggplot(results, aes(x = Theta, y = Phi, color = Color, group = r)) +
+  geom_line(size = 1) +
+  geom_text_repel(data = results %>% group_by(r) %>% filter(Phi == max(Phi)),
+                  aes(label = r), size = 3.5, nudge_y = 0.1, direction = "x") +
+  labs(title = expression(paste(widehat(theta), " versus ",
+                                widehat(Phi)(r), " for different values of rank ", r)),
+       x = expression(widehat(theta)),
+       y = expression(widehat(Phi)(r))) +
+  scale_color_manual(values = color_pal) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "black") +
+  geom_hline(yintercept = 2, linetype = "dotted", color = "black") +
+  geom_hline(yintercept = 5, linetype = "dotted", color = "black") +
+  geom_hline(yintercept = 10, linetype = "dotted", color = "black") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+
+Plot8b_theta_r_RIF_azul_sin_text
+```
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot8b_theta_r_RIF_azul_sin_text.png", plot = Plot8b_theta_r_RIF_azul_sin_text, width = 6, height = 4, dpi = 600)
+
+```
+
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### Load svg, blue gradient, divisions
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Define the function to calculate theta values for multiple r values
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+
+
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1, 15, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Display the results
+#print(results)
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Define the color palette
+color_pal <- colorRampPalette(c("lightblue", "blue"))(length(r_values))
+
+# Add the color palette to the data frame
+results$Color <- factor(results$r, labels = color_pal)
+
+# Display the results
+#print(results)
+
+# Plot the results
+# Plot the results
+# Plot the results
+Plot8b_SVG_theta_r_RIF_azul_sin_text<- ggplot(results, aes(x = Theta, y = Phi, color = Color, group = r)) +
+  geom_line(size = 1) +
+  geom_text_repel(data = results %>% group_by(r) %>% filter(Phi == max(Phi)),
+                  aes(label = r), size = 3.5, nudge_y = 0.1, direction = "x") +
+  labs(title = expression(paste(widehat(theta), " versus ",
+                                widehat(Phi)(r), " for different values of rank ", r)),
+       x = expression(widehat(theta)),
+       y = expression(widehat(Phi)(r))) +
+  scale_color_manual(values = color_pal) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "black") +
+  geom_hline(yintercept = 2, linetype = "dotted", color = "black") +
+  geom_hline(yintercept = 5, linetype = "dotted", color = "black") +
+  geom_hline(yintercept = 10, linetype = "dotted", color = "black") +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+
+Plot8b_SVG_theta_r_RIF_azul_sin_text
+```
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot8b_SVG_theta_r_RIF_azul_sin_text.svg", plot = Plot8b_SVG_theta_r_RIF_azul_sin_text, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load png, blue gradient, division, category
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Define the function to calculate theta values for multiple r values
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1, 15, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Define the color palette
+#color_pal <- colorRampPalette(c("lightblue", "blue"))(length(r_values))
+color_pal <- colorRampPalette(c("lightblue", "blue"))(length(r_values))
+
+# Add the color palette to the data frame
+results$Color <- factor(results$r, labels = color_pal)
+
+# Display the results
+#print(results)
+
+# Plot the results
+Plot8c_theta_r_RIF_azul_con_text <- ggplot(results, aes(x = Theta, y = Phi, color = Color, group = r)) +
+  geom_line(linewidth = 1) +
+  geom_text_repel(data = results %>% group_by(r) %>% filter(Phi == max(Phi)),
+                  aes(label = r), size = 3.5, nudge_y = 0.3, direction = "x") +
+  labs(title = expression(paste(widehat(theta), " versus ",
+                                widehat(Phi)(r), " for different values of rank ", r)),
+       x = expression(widehat(theta)),
+       y = expression(widehat(Phi)(r))) +
+  scale_color_manual(values = color_pal) +
+  xlim(0, 4.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "black", size=0.6) +
+  geom_hline(yintercept = 2, linetype = "dotted", color = "black", size=0.6) +
+  geom_hline(yintercept = 5, linetype = "dotted", color = "black", size=0.6) +
+  geom_hline(yintercept = 10, linetype = "dotted", color = "black", size=0.6) +
+  # Phi text ranges
+  geom_text(x = max(results$Theta), y = 1, label = "Moderate", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = max(results$Theta) , y = 3.5, label = "Significant", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = max(results$Theta) , y = 7.55, label = "Critical", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = max(results$Theta) , y = 12, label = "Dominant", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  
+  # Phi values
+  geom_text(x =-0.35, y = 1, label = "1", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = -0.35 , y = 2, label = "2", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = -0.35 , y = 5, label = "5", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = -0.35 , y = 10, label = "10", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  coord_cartesian(clip = "off") +
+  theme_minimal() +
+ theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+
+Plot8c_theta_r_RIF_azul_con_text
+```
+
+
+
+```{r}
+# Save the graphic with high resolution
+ggsave("Plot8c_theta_r_RIF_azul_con_text.png", plot = Plot8c_theta_r_RIF_azul_con_text, width = 6, height = 4, dpi = 600)
+
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+### Load svg, blue gradient, division, category
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(ggrepel)
+
+# Define the function to calculate theta values for multiple r values
+calculate_theta_multiple_r <- function(r_values, phi_values) {
+  results <- data.frame()
+  
+  for (r in r_values) {
+    theta_values <- log(phi_values) / log(r)
+    temp_df <- data.frame(r = r, Phi = phi_values, Theta = theta_values)
+    results <- rbind(results, temp_df)
+  }
+  
+  return(results)
+}
+
+# Example usage
+r_values <- 2:10  # Fixed values of r
+phi_values <- seq(1, 15, by = 0.01)  # List of Phi values within the range (1, 2]
+
+# Calculate theta values for the given Phi values and multiple r values
+results <- calculate_theta_multiple_r(r_values, phi_values)
+
+# Define the color palette
+#color_pal <- colorRampPalette(c("lightblue", "blue"))(length(r_values))
+color_pal <- colorRampPalette(c("lightblue", "blue"))(length(r_values))
+
+# Add the color palette to the data frame
+results$Color <- factor(results$r, labels = color_pal)
+
+# Display the results
+#print(results)
+
+# Plot the results
+Plot8c_SVG_theta_r_RIF_azul_con_text <- ggplot(results, aes(x = Theta, y = Phi, color = Color, group = r)) +
+  geom_line(linewidth = 1) +
+  geom_text_repel(data = results %>% group_by(r) %>% filter(Phi == max(Phi)),
+                  aes(label = r), size = 3.5, nudge_y = 0.3, direction = "x") +
+  labs(title = expression(paste(widehat(theta), " versus ",
+                                widehat(Phi)(r), " for different values of rank ", r)),
+       x = expression(widehat(theta)),
+       y = expression(widehat(Phi)(r))) +
+  scale_color_manual(values = color_pal) +
+  xlim(0, 4.5)+
+  scale_y_continuous(expand = expansion(mult = c(0, 0.1))) +
+  geom_hline(yintercept = 1, linetype = "dotted", color = "black", size=0.6) +
+  geom_hline(yintercept = 2, linetype = "dotted", color = "black", size=0.6) +
+  geom_hline(yintercept = 5, linetype = "dotted", color = "black", size=0.6) +
+  geom_hline(yintercept = 10, linetype = "dotted", color = "black", size=0.6) +
+  # Phi text ranges
+  geom_text(x = max(results$Theta), y = 1, label = "Moderate", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = max(results$Theta) , y = 3.5, label = "Significant", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = max(results$Theta) , y = 7.55, label = "Critical", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = max(results$Theta) , y = 12, label = "Dominant", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  
+  # Phi values
+  geom_text(x =-0.35, y = 1, label = "1", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = -0.35 , y = 2, label = "2", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = -0.35 , y = 5, label = "5", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  geom_text(x = -0.35 , y = 10, label = "10", 
+            hjust = 0, vjust = -0.5, size = 3.5) +
+  coord_cartesian(clip = "off") +
+  theme_minimal() +
+ theme(
+    plot.title = element_text(size = 16, face = "bold"),
+    axis.title.x = element_text(size = 16),
+    axis.title.y = element_text(size = 16),
+    axis.text.x = element_text(size = 14),
+    axis.text.y = element_text(size = 14),
+    legend.title = element_text(size = 14),
+    legend.text = element_text(size = 12), 
+    legend.position = "none" # Remove legend
+  ) 
+
+Plot8c_SVG_theta_r_RIF_azul_con_text
+```
+
+
+
+```{r}
+# Save as SVG
+ggsave(filename = "Plot8c_SVG_theta_r_RIF_azul_con_text.svg", plot = Plot8c_SVG_theta_r_RIF_azul_con_text, 
+       device = "svg", width = 6, height = 4)
+getwd()
+#dev.off()
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+
+# References
+
+Popescu, I. I. (2003). On a Zipf's law extension to impact factors. Glottometrics, 6, 83-93.
