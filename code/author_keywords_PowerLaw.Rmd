@@ -384,15 +384,20 @@ we cannot reject the null hypothesis that the data in question follows a
 power law distribution — i.e. based on this p-value, we are very
 confident that it does.
 
-
+# Final results
 
 ```{r}
 Estimation <- data.frame(rbind(KS_df, boot_df))
 
+Estimation %>% 
+  kable(align = "lcc") %>% 
+  kable_styling(latex_options = "HOLD_position") %>%
+  kable_classic_2(full_width = FALSE)
+  
 library(openxlsx) 
-write.xlsx(Estimation, "author_keywords_Estimation.xls", 
+write.xlsx(Estimation, "all_keywords_Estimation.xlsx", 
            sheetName = "results", rowNames = FALSE)
-write.csv(Estimation,file="author_keywords_Estimation.csv") 
+write.csv(Estimation,file="all_keywords_Estimation.csv") 
 
 ```
 

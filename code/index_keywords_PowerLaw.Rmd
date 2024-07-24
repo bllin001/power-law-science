@@ -385,14 +385,20 @@ power law distribution — i.e. based on this p-value, we are very
 confident that it does.
 
 
+# Final results
 
 ```{r}
 Estimation <- data.frame(rbind(KS_df, boot_df))
 
+Estimation %>% 
+  kable(align = "lcc") %>% 
+  kable_styling(latex_options = "HOLD_position") %>%
+  kable_classic_2(full_width = FALSE)
+  
 library(openxlsx) 
-write.xlsx(Estimation, "index_keywords_Estimation.xlsx", 
+write.xlsx(Estimation, "all_keywords_Estimation.xlsx", 
            sheetName = "results", rowNames = FALSE)
-write.csv(Estimation,file="index_keywords_Estimation.csv") 
+write.csv(Estimation,file="all_keywords_Estimation.csv") 
 
 ```
 
