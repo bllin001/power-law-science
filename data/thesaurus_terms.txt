@@ -1,0 +1,62 @@
+Label; Replace by 
+adaptation, psychological; psychological adaptation
+resilience, psychological; psychological resilience 
+adolescents; adolescent
+aging; aged
+animals; animal
+climate adaptation; climate change adaptation
+pandemics; pandemic
+covid-19 pandemic; covid-19
+disasters; disaster
+natural disasters; natural hazard
+social-ecological systems; social-ecological system
+coronavirus disease 2019; covid-19 disease
+sars-cov-2; covid-19
+cities; city
+humans; human
+qualitative research; qualitative analysis
+article;
+young adult; adult
+case-studies; case study
+climate; climate change
+climate effect; climate change
+climate variation; climate change
+clinical article;
+community resiliences; community resilience
+coronavirus; covid-19
+cross-sectional studies; cross-sectional study
+disaster risk reductions; disaster risk reduction
+earthquakes; earthquake
+editorial;
+entropy method; entropy
+fisheries; fishery
+floods; flood
+gis; geographic information system
+investments; investment
+letter;
+literature review;
+livelihoods; livelihood
+methodology;
+mexico [north america]; mexico
+models, theoretical; theoretical models
+motivation;
+natural disaster; natural hazard
+natural hazards; natural hazard
+note;
+priority journal;
+questionnaire; survey
+questionnaire survey; survey
+research;
+research work;
+resilience;
+review;
+rural areas; rural area
+singapore [southeast asia]; singapore
+social aspects; social aspect
+social capitals; social capital
+network analysis; social network analysis
+social network; social network analysis
+social networks; social network analysis
+surveys; survey
+surveys and questionnaires; survey
+systematic review;
