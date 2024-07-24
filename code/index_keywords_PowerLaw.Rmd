@@ -118,7 +118,7 @@ analyse dataset.
 
 ```{r}
 # Data Lecture
-data <- read.csv("../data/index_keyword_frequency.csv")
+data <- read.csv("../data/index_cleaned_keyword_frequency.csv")
 head(data)
 
 ```
