@@ -6,7 +6,6 @@ aging; aged
 animals; animal
 climate adaptation; climate change adaptation
 pandemics; pandemic
-covid-19 pandemic; covid-19
 disasters; disaster
 natural disasters; natural hazard
 social-ecological systems; social-ecological system
@@ -16,7 +15,6 @@ cities; city
 humans; human
 qualitative research; qualitative analysis
 article;
-young adult; adult
 case-studies; case study
 climate; climate change
 climate effect; climate change
@@ -38,7 +36,7 @@ literature review;
 livelihoods; livelihood
 methodology;
 mexico [north america]; mexico
-models, theoretical; theoretical models
+models, theoretical; theoretical model
 motivation;
 natural disaster; natural hazard
 natural hazards; natural hazard
