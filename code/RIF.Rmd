@@ -1,0 +1,140 @@
+---
+title: "RIF Index"
+author: "Brian LLinas"
+date: "2024-06-20"
+output: 
+  word_document: default
+  html_document:
+          toc: true      # table of content true
+          toc_depth: 4   # upto three depths of headings (specified by #, ## and ###)
+          toc_float: true #Con true, toc sale al margen izquierdo de la página; de lo contrario, arriba
+          collapsed: false
+          smooth_scroll: false
+          number_sections: true   # if you want number sections at each table header
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_all_4`:  all parameters, country column
+
+
+```{r}
+# Load necessary libraries
+required_packages <- c("stringi", "dplyr")
+
+# Install missing packages
+new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
+if(length(new_packages)) install.packages(new_packages)
+
+# Load packages
+lapply(required_packages, library, character.only = TRUE)
+
+# Define function RIF_by_type_adapted
+RIF_by_type <- function(data, xmin, alfa) {
+  # Automatically detect the numerical and character columns
+  numeric_col <- names(Filter(is.numeric, data))[1]
+  char_col <- names(Filter(is.character, data))[1]
+  
+  count <- data[[numeric_col]]
+  filtered_count <- count[count >= xmin]
+  
+  if (length(filtered_count) == 0) {
+    return(data.frame())
+  }
+  
+  rank_xmin <- 1:length(filtered_count)
+  filtered_data <- data[count >= xmin, ]
+  dt <- data.frame(Rank = rank_xmin, Count = filtered_count)
+  dt$log_Rank <- log(dt$Rank)
+  dt$log_Count <- log(dt$Count)
+  
+  model <- lm(log_Count ~ log_Rank, data = dt)
+  s <- summary(model)
+  
+  intercept <- coef(model)[1]
+  slope <- coef(model)[2]
+  delta <- exp(intercept)
+  beta <- slope
+  
+  theta <- -alfa * beta
+  fraction_rank <- (rank_xmin) ^ (-theta)
+  sum_rank <- sum(fraction_rank)
+  A_rank <- 1 / sum_rank
+  
+  probabilities_rank <- A_rank * fraction_rank
+  ratio <- probabilities_rank[1] / probabilities_rank
+  
+  fraction_x <- 1 / (filtered_count) ^ alfa
+  sum_x <- sum(fraction_x)
+  C_rank <- 1 / sum_x
+  B_rank <- (A_rank * C_rank) / (delta ^ alfa)
+  
+  result_data <- data.frame(
+    Rank = rank_xmin, 
+    Concept = filtered_data[[char_col]],
+    Count = filtered_count, 
+    Prob_Rank = round(probabilities_rank, 3),
+    RIF_Index = round(ratio, 3),
+    alfa = round(alfa, 3),
+    xmin = xmin,
+    delta = round(delta, 3),
+    beta = round(beta, 3),
+    r.squared = round(s$r.squared, 3),  
+    theta = round(theta, 3),
+    A = round(A_rank, 3),
+    B = round(B_rank, 3),
+    C = round(C_rank, 3)
+  )
+  
+  # Make all rows except the first one empty for columns from 'alfa' onwards
+  result_data[-1, 6:ncol(result_data)] <- ""
+
+  # Return the complete dataframe
+  return(result_data)
+}
+```
+
+
+<!-- %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% -->
+<!-- Separador -->
+
+### `RIF_all_4`: All Keywords
+
+```{r message=FALSE, warning=FALSE}
+data <- read.csv("../data/all_cleaned_keyword_frequency.csv")
+
+RIF_by_type(data, 27, 2.337)
+
+
+```
+
+### `RIF_all_4`: All Keywords
+
+```{r message=FALSE, warning=FALSE}
+data <- read.csv("../data/authors_cleaned_keyword_frequency.csv")
+
+RIF_by_type(data, 10, 2.331)
+
+
+```
+
+### `RIF_all_4`: All Keywords
+
+```{r message=FALSE, warning=FALSE}
+data <- read.csv("../data/index_cleaned_keyword_frequency.csv")
+
+RIF_by_type(data, 21, 2.433)
+
+
+```
+
+```{r}
+# Export to CSV
+# write.csv(RIF_Colombia, file = "RIF_Colombia.csv", row.names = FALSE)
+```
